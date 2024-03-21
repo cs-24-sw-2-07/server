@@ -1,12 +1,16 @@
 // Web app framework:
 import express from 'express';
+import http from 'http';
 const app = express();
-const http = require('http');
 const server = http.createServer(app);
 
 // Socket server that makes use of the above http app server:
-const { Server } = require("socket.io");
-const io = new Server(server);
+import { Server } from "socket.io";
+const io = new Server(server, {
+  cors: {
+    origin: "*"
+  }
+});
 
 // Basic app routing
 //app.get('/', (req, res) => {
