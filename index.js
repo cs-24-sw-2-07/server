@@ -20,6 +20,10 @@ const io = new Server(server, {
 // Handle socket connections
 io.on('connection', (socket) => {
   console.log('a user connected');
+
+  socket.on('buttonClick', (count) => {
+    console.log(socket.id, "has clicked the button", count, "times")
+  });
 });
 
 // Start application server
