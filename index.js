@@ -10,7 +10,7 @@ const io = new Server(server, {
   cors: {
     origin: "*"
   }
-});
+})
 
 // Basic app routing
 // app.get('/', (req, res) => {
