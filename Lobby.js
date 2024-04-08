@@ -33,7 +33,8 @@ function RoomSetUp(socket, io, id){
     });
     // Vi tildeler socket.id til socketconnection, som vi sætter ind i vores map
     // hvor vores rooms lå
-    const socketconnection = [socket.id];
+    const socketconnection = new Set(); 
+    socketconnection.add(socket.id);
     Rooms.set(id, socketconnection);
 }
 
@@ -50,12 +51,15 @@ function SendSettingsAndId(socket, io, id) {
 // function 
 
 //change Settings 
-function changeSettings(io, id, changesJson) {
-    console.log("Askes mor er dejlig");
+function changeSettings(io, Json) {
+    console.log("");
+
 }
 
-//Delete Lobby 
+/* function Delete Lobby(io, rooms){
 
+}
+*/
 // Start Game
 
 

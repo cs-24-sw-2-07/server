@@ -31,17 +31,19 @@ io.on("connection", (socket) => {
   });
 
   /* ============ Lobby Handler =========== */ 
-  socket.on("changeSettings", (change) => {
-    try {
-      const changesJson = JSON.parse(change);
-      changeSettings(io, changesJson.id, changesJson);
-    } catch (error) {
-      console.error("Error parsing JSON:", error);
-    }
+  socket.on("createLobby", () => {
+    CreateLobby(socket, io);
+  }); 
+  socket.on("changeSettings", changeJson => {
+      const changeJson = JSON.parse(change);
+      changeSettings(io, changeJson);
   });
+  //socket.on("DeleteLobby", id => {})
   /*socket.on("LobbyJoin", id => (
-    Rooms.get(id) ? JoinLobby(id) : socket.emit("RoomNotExist"); 
+    Rooms.get(id) ? JoinLobby(id) : socket.emit("RoomNotExist");  
   ));*/
+  //socket.on("leaveLobby", id => {});
+
 
 });
 export { Rooms };
@@ -49,3 +51,12 @@ export { Rooms };
 server.listen(3000, () => {
   console.log("listening on *:3000")
 })
+
+
+/* SLET SENERE
+ * changeJson = 
+{
+  id: idnum,
+  life: newVal 
+} 
+ */
