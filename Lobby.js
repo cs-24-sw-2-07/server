@@ -9,17 +9,18 @@ import { Server } from "socket.io";
 
 function CreateLobby(socket) {
     // Create map for rooms
-    const id CreateLobbyID(); 
+    const id = CreateLobbyID(); 
     
     
 }
 
 function CreateLobbyID() {
+    do {
     let numbers ="";
     for(let i=0; i<5; i++){
         numbers += Math.floor(Math.random()*10); 
     }
-    
+    } while (Rooms.get(numbers)); 
     const id = numbers; 
     return id; 
 }
