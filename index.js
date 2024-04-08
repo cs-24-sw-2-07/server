@@ -2,10 +2,10 @@
 import express from "express"
 import http from "http"
 import { Server } from "socket.io"
-import { CreateLobby } from "./Lobby.js"
+import { CreateLobby, changeSettings } from "./Lobby.js" // TODO: Make this work
 const app = express()
 const server = http.createServer(app) 
-export { Rooms }; 
+ 
 
 // Socket server that makes use of the above http app server:
 const io = new Server(server, {
@@ -13,7 +13,10 @@ const io = new Server(server, {
     origin: "*"
   }
 })
-const Rooms = new Map(); 
+
+// This map contains all rooms and socket connections within the map
+const Rooms = new Map();
+
 // Basic app routing
 // app.get('/', (req, res) => {
 //  res.sendFile(__dirname + '/index.html');
@@ -27,11 +30,21 @@ io.on("connection", (socket) => {
     console.log(socket.id, "has clicked the button", count, "times")
   });
 
-  
-  socket.on("lobbyCreate", CreateLobby(socket));
-  //socket.on("changeSettings", changeSettings(socket));
-})
+  /* ============ Lobby Handler =========== */ 
+  socket.on("changeSettings", (change) => {
+    try {
+      const changesJson = JSON.parse(change);
+      changeSettings(io, changesJson.id, changesJson);
+    } catch (error) {
+      console.error("Error parsing JSON:", error);
+    }
+  });
+  /*socket.on("LobbyJoin", id => (
+    Rooms.get(id) ? JoinLobby(id) : socket.emit("RoomNotExist"); 
+  ));*/
 
+});
+export { Rooms };
 // Start application server
 server.listen(3000, () => {
   console.log("listening on *:3000")
