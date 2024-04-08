@@ -4,7 +4,7 @@ import http from "http"
 import { Server } from "socket.io"
 const app = express()
 const server = http.createServer(app) 
-
+export { Rooms }; 
 
 // Socket server that makes use of the above http app server:
 const io = new Server(server, {
@@ -12,7 +12,7 @@ const io = new Server(server, {
     origin: "*"
   }
 })
-
+const Rooms = new Map(); 
 // Basic app routing
 // app.get('/', (req, res) => {
 //  res.sendFile(__dirname + '/index.html');
@@ -24,9 +24,11 @@ io.on("connection", (socket) => {
 
   socket.on("buttonClick", (count) => {
     console.log(socket.id, "has clicked the button", count, "times")
-  })
+  });
 
-  socket.on("lobbyCreate", dsad(socket))
+  
+  socket.on("lobbyCreate", createLobby(socket));
+  //socket.on("changeSettings", changeSettings(socket));
 })
 
 // Start application server
