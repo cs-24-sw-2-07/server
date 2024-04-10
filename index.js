@@ -31,17 +31,21 @@ io.on("connection", (socket) => {
   });
 
   /* ============ Lobby Handler =========== */ 
-  socket.on("createLobby", () => {
-    CreateLobby(socket, io);
+  socket.on("createLobby", data => {
+    data = JSON.parse(data); 
+    CreateLobby(socket, io, data);
   }); 
   socket.on("changeSettings", changeJson => {
-      const change = JSON.parse(changesJson);
+      const change = JSON.parse(changeJson);
       changeSettings(io, change);
+      socket.to(changeJson.id).emit(JSON.stringify(changeJson));
   });
   //socket.on("DeleteLobby", id => {})
-  socket.on("LobbyJoin", id => (
-    Rooms.get(id) ? JoinLobby(id) : socket.emit("RoomNotExist")  
-  ));
+  socket.on("joinLobby", data => {
+    data = JSON.parse(data);
+    let id = data.id;
+    Rooms.get(id) ? JoinLobby(id) : socket.emit("RoomNotExist");
+  }); 
   //socket.on("leaveLobby", id => {});
 
 

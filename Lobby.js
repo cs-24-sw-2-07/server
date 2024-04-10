@@ -91,7 +91,7 @@ function deletelobby(id, io, Rooms){
     delete Rooms[id];
     return true;
     } else{
-        console.error("Room dosen't exist");;
+        console.error("Room dosen't exist");
         return false
     }
 }
