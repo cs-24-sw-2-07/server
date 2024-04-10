@@ -73,22 +73,21 @@ changeJson = {
 } 
 */
 
-function joinLobby(id, io, rooms){
-            socket.on(`joinlobby`, (roomcode) =>{
-            if (isValidRoomcode(roomcode)){
-                socket.join(roomcode);
+function joinLobby(id, io, rooms, playerId){
+    let name = Rooms.get(id).players.get(playerId).name;
+            if (isValidRoomcode(rooms)){
+                socket.join(rooms);
                 console.log(name + "has joined the lobby");
-                io.to(roomcode).emit(name+"joined", socket.id);
+                io.to(rooms).emit(name+"joined", socket.id);
             }else {
                 socket.emit("invalid room code");
             }
-        })
-    }
+        }
 
     function leaveLobby(id, io, playerId){
-        socket.emit (`leave lobby`, () =>{
+        socket.emit ("leave lobby", () =>{
                 let name = Rooms.get(id).players.get(playerId).name;
-                console.log(`A player has left the lobby`);
+                console.log("A player has left the lobby");
                 Rooms.players.delete(socket.id, {
                     "name": name,
                     "decks": null,

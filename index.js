@@ -42,7 +42,8 @@ io.on("connection", (socket) => {
   });
   //socket.on("DeleteLobby", id => {})
   socket.on("joinLobby", data => {
-    data = JSON.parse(data);
+    socket.on(`joinlobby`, (roomcode)
+    data = JSON.parse(data));
     let id = data.id;
     Rooms.get(id) ? joinLobby(id) : socket.emit("RoomNotExist");
   }); 
