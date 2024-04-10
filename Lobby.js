@@ -73,12 +73,7 @@ changeJson = {
 */
 
 function joinLobby(id, io, rooms){
-    io.on(`connection`, (socket) =>{
-        let name = Rooms.get(id).players.get(player_id).name;
-        console.log(name + "has connected");
-        
-
-        socket.on(`joinlobby`, (roomcode) =>{
+            socket.on(`joinlobby`, (roomcode) =>{
             if (isValidRoomcode(roomcode)){
                 socket.join(roomcode);
                 console.log(name + "has joined the lobby");
@@ -87,8 +82,7 @@ function joinLobby(id, io, rooms){
                 socket.emit("invalid room code");
             }
         })
-    })
-}
+    }
 
 function deletelobby(id, io, Rooms){
     if (Rooms[id]){
