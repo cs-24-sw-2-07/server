@@ -23,7 +23,7 @@ const Rooms = new Map();
 // }); 
 
 // Handle socket connections
-io.on("connection", (socket) => {
+io.on("connection", socket => {
   console.log("a user connected")
 
   socket.on("buttonClick", (count) => {
@@ -44,11 +44,9 @@ io.on("connection", (socket) => {
   socket.on("joinLobby", data => {
     data = JSON.parse(data);
     let id = data.id;
-    Rooms.get(id) ? JoinLobby(id) : socket.emit("RoomNotExist");
+    Rooms.get(id) ? joinLobby(id) : socket.emit("RoomNotExist");
   }); 
   //socket.on("leaveLobby", id => {});
-
-
 });
 export { Rooms };
 // Start application server

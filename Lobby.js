@@ -74,7 +74,7 @@ changeJson = {
 */
 
 function joinLobby(id, io, rooms){
-            socket.on("joinlobby", (roomcode) =>{
+            socket.on(`joinlobby`, (roomcode) =>{
             if (isValidRoomcode(roomcode)){
                 socket.join(roomcode);
                 console.log(name + "has joined the lobby");
