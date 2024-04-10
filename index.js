@@ -38,11 +38,13 @@ io.on("connection", (socket) => {
   socket.on("changeSettings", changeJson => {
       const change = JSON.parse(changeJson);
       changeSettings(io, change);
+      socket.to(changeJson.id).emit(JSON.stringify(changeJson));
   });
   //socket.on("DeleteLobby", id => {})
-  /*socket.on("LobbyJoin", id => (
+  socket.on("joinLobby", data => (
+
     Rooms.get(id) ? JoinLobby(id) : socket.emit("RoomNotExist");  
-  ));*/
+  ));
   //socket.on("leaveLobby", id => {});
 
 
