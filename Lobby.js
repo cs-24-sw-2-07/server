@@ -66,7 +66,7 @@ function changeSettings(io, changeJson) {
     
     let settingJson = fs.readFileSync("./settings.json");
     settingJson[setting] = changeJson[setting]; 
-    io.to(pathID).emit(JSON.stringify(settingJson)); 
+    io.to(pathID).emit(JSON.stringify(settingJson));
 };
 /* SLET SENERE
 changeJson = {
@@ -76,10 +76,28 @@ changeJson = {
 } 
 */
 
-function Delete Lobby(id, io, rooms){
-    if (rooms[idd]){
+function joinLobby(id, io, rooms){
+    io.on(`connection`, (socket) =>{
+        let name = Rooms.get(id).players.get(player_id).name;
+        console.log(name + "has connected");
+        
+
+        socket.on(`joinlobby`, (roomcode) =>{
+            if (isValidRoomcode(roomcode)){
+                socket.join(roomcode);
+                console.log(name + "has joined the lobby");
+                io.to(roomcode).emit(name+"joined", socket.id);
+            }else {
+                socket.emit("invalid room code");
+            }
+        })
+    })
+}
+
+function deletelobby(id, io, Rooms){
+    if (Rooms[id]){
     io.in(id).socketsLeave(id);
-    delete rooms[id];
+    delete Rooms[id];
     return true;
     } else{
         console.error("Room dosen't exist");;
