@@ -51,15 +51,31 @@ function SendSettingsAndId(socket, io, id) {
 // function 
 
 //change Settings 
-function changeSettings(io, Json) {
-    console.log("");
-
-}
-
-/* function Delete Lobby(io, rooms){
-
-}
+function changeSettings(io, changeJson) {
+    const setting = changeJson.key;
+    const pathID = `/${changeJson.id}`; 
+    let settingJson = fs.readFileSync("./settings.json");
+    settingJson[setting] = changeJson[setting]; 
+    io.to(pathID).emit(JSON.stringify(settingJson)); 
+};
+/* SLET SENERE
+changeJson = {
+  id: idnum,
+  key: life
+  life: newVal 
+} 
 */
+
+function Delete Lobby(id, io, rooms){
+    if (rooms[idd]){
+    io.in(id).socketsLeave(id);
+    delete rooms[id];
+    return true;
+    } else{
+        console.error("Room dosen't exist");;
+        return false
+    }
+}
 // Start Game
 
 

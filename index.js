@@ -35,8 +35,8 @@ io.on("connection", (socket) => {
     CreateLobby(socket, io);
   }); 
   socket.on("changeSettings", changeJson => {
-      const changeJson = JSON.parse(change);
-      changeSettings(io, changeJson);
+      const change = JSON.parse(changesJson);
+      changeSettings(io, change);
   });
   //socket.on("DeleteLobby", id => {})
   /*socket.on("LobbyJoin", id => (
@@ -51,12 +51,3 @@ export { Rooms };
 server.listen(3000, () => {
   console.log("listening on *:3000")
 })
-
-
-/* SLET SENERE
- * changeJson = 
-{
-  id: idnum,
-  life: newVal 
-} 
- */
