@@ -1,5 +1,5 @@
 import { Rooms } from "./index.js";
-export { CreateLobby, changeSettings, joinLobby, leaveLobby, deleteLobby };
+export { CreateLobby, changeSettings, joinLobby, leaveLobby, deleteLobby, ChangeDeckState };
 import fs from "fs"; 
 // ========================================= host lobby ===============================================================
 
@@ -48,7 +48,7 @@ function RoomSetUp(socket, io, id, name){
     Rooms.set(id, lobbyStateObj);
 }
 
-function SendSettingsAndId(socket, io, id) {
+function SendSettingsAndId(io, id) {
     const pathID = "/" + id; 
     let LobbyJson = fs.readFileSync("./settings.json");
 
@@ -57,7 +57,14 @@ function SendSettingsAndId(socket, io, id) {
 }
 
 //Choose Decks
-// function 
+function ChangeDeckState(deckJson, socket) {
+    // Get the Room
+    const room = Rooms.get(deckJson.id);
+    // Get the player
+    const player = room.players.get(socket.id); 
+    // Assign the players deck
+    player.deck = deckJson.deck;
+}
 
 //change Settings 
 function changeSettings(io, changeJson) {
