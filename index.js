@@ -2,7 +2,7 @@
 import express from "express"
 import http from "http"
 import { Server } from "socket.io"
-import { CreateLobby, changeSettings } from "./Lobby.js" // TODO: Make this work
+import { CreateLobby, changeSettings, joinLobby,leaveLobby, deleteLobby } from "./Lobby.js" // TODO: Make this work
 const app = express()
 const server = http.createServer(app) 
  
@@ -23,7 +23,7 @@ const Rooms = new Map();
 // }); 
 
 // Handle socket connections
-io.on("connection", socket => {
+io.on("connection", (socket) => {
   console.log("a user connected")
 
   socket.on("buttonClick", (count) => {
@@ -47,6 +47,8 @@ io.on("connection", socket => {
     Rooms.get(id) ? joinLobby(id) : socket.emit("RoomNotExist");
   }); 
   //socket.on("leaveLobby", id => {});
+
+
 });
 export { Rooms };
 // Start application server

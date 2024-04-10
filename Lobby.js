@@ -1,5 +1,5 @@
 import { Rooms } from "./index.js";
-export { CreateLobby, changeSettings };
+export { CreateLobby, changeSettings, joinLobby, leaveLobby, deleteLobby };
 import fs from "fs"; 
 // ========================================= host lobby ===============================================================
 
@@ -85,7 +85,20 @@ function joinLobby(id, io, rooms){
         })
     }
 
-function deletelobby(id, io, Rooms){
+    function leaveLobby(id, io, playerId){
+        socket.emit (`leave lobby`, () =>{
+                let name = Rooms.get(id).players.get(playerId).name;
+                console.log(`A player has left the lobby`);
+                Rooms.players.delete(socket.id, {
+                    "name": name,
+                    "decks": null,
+                    "ready": false
+                })
+            }
+        ) 
+    }
+
+function deleteLobby(id, io, Rooms){
     if (Rooms[id]){
     io.in(id).socketsLeave(id);
     delete Rooms[id];
