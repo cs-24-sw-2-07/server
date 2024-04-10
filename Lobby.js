@@ -56,7 +56,7 @@ function changeSettings(io, changeJson) {
     const pathID = `/${changeJson.id}`; 
     let settingJson = fs.readFileSync("./settings.json");
     settingJson[setting] = changeJson[setting]; 
-    io.to(pathID).emit(JSON.stringify(settingJson)); 
+    io.to(pathID).emit(JSON.stringify(settingJson));
 };
 /* SLET SENERE
 changeJson = {
@@ -66,10 +66,10 @@ changeJson = {
 } 
 */
 
-function Delete Lobby(id, io, rooms){
-    if (rooms[idd]){
+function DeleteLobby(id, io, Rooms){
+    if (Rooms[idd]){
     io.in(id).socketsLeave(id);
-    delete rooms[id];
+    delete Rooms[id];
     return true;
     } else{
         console.error("Room dosen't exist");;
