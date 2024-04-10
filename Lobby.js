@@ -74,7 +74,7 @@ changeJson = {
 */
 
 function joinLobby(id, io, rooms){
-            socket.on(`joinlobby`, (roomcode) =>{
+            socket.on("joinlobby", (roomcode) =>{
             if (isValidRoomcode(roomcode)){
                 socket.join(roomcode);
                 console.log(name + "has joined the lobby");
@@ -91,7 +91,7 @@ function deletelobby(id, io, Rooms){
     delete Rooms[id];
     return true;
     } else{
-        console.error("Room dosen't exist");;
+        console.error("Room dosen't exist");
         return false
     }
 }
