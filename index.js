@@ -31,11 +31,12 @@ io.on("connection", (socket) => {
   });
 
   /* ============ Lobby Handler =========== */ 
-  socket.on("createLobby", () => {
-    CreateLobby(socket, io);
+  socket.on("createLobby", data => {
+    data = JSON.parse(data); 
+    CreateLobby(socket, io, data);
   }); 
   socket.on("changeSettings", changeJson => {
-      const change = JSON.parse(changesJson);
+      const change = JSON.parse(changeJson);
       changeSettings(io, change);
   });
   //socket.on("DeleteLobby", id => {})
