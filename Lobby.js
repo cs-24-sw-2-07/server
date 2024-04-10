@@ -16,8 +16,9 @@ function CreateLobby(socket, io, data) {
 }
 
 function CreateLobbyID() {
+    let numbers;
     do {
-        let numbers ="";
+        numbers = "";
         for(let i=0; i<5; i++){
             numbers += Math.floor(Math.random()*10); 
         }
