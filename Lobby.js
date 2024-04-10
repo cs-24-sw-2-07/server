@@ -33,9 +33,20 @@ function RoomSetUp(socket, io, id){
     });
     // Vi tildeler socket.id til socketconnection, som vi sætter ind i vores map
     // hvor vores rooms lå
-    const socketconnection = new Set(); 
-    socketconnection.add(socket.id);
-    Rooms.set(id, socketconnection);
+    let settings = fs.readFileSync("./settings.json");
+    let lobbyStateObj = {
+        "id": id, 
+        "players": {
+            "player1": { 
+                "connection": socket.id,
+                "deck": null,
+                "ready": false
+            },
+            "player2": null, 
+        },
+        "settings": JSON.parse(settings)
+    };
+    Rooms.set(id, lobbyStateObj);
 }
 
 function SendSettingsAndId(socket, io, id) {
@@ -45,7 +56,6 @@ function SendSettingsAndId(socket, io, id) {
     const data = JSON.stringify(LobbyJson);
     io.to(pathID).emit(data);
 }
-
 
 //Choose Decks
 // function 
