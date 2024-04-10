@@ -26,13 +26,12 @@ function CreateLobbyID() {
     return id; 
 }
 
-function RoomSetUp(socket, io, id){
+function RoomSetUp(socket, io, id, name){
     const pathID = "/" + id; 
     io.of(pathID).adapter.on("create-room", (room) => {
         console.log(`room ${room} was created`);
     });
-    // Vi tildeler socket.id til socketconnection, som vi sætter ind i vores map
-    // hvor vores rooms lå
+    // The lobby state is added to the rooms map as a value to the given room id 
     let settings = fs.readFileSync("./settings.json");
     let lobbyStateObj = {
         "id": id, 
@@ -40,13 +39,10 @@ function RoomSetUp(socket, io, id){
         "settings": JSON.parse(settings)
     };
     let playerVal = { 
-        "player1": { 
-            //"name": data, 
-            "deck": null,
-            "ready": false
-        },
-        "player2": null, 
-    }
+        "name": name, 
+        "deck": null,
+        "ready": false
+    };
     lobbyStateObj.players.set(socket.id, playerVal); 
     Rooms.set(id, lobbyStateObj);
 }
@@ -66,6 +62,8 @@ function SendSettingsAndId(socket, io, id) {
 function changeSettings(io, changeJson) {
     const setting = changeJson.key;
     const pathID = `/${changeJson.id}`; 
+    const room = Rooms.get(id); 
+    
     let settingJson = fs.readFileSync("./settings.json");
     settingJson[setting] = changeJson[setting]; 
     io.to(pathID).emit(JSON.stringify(settingJson)); 
