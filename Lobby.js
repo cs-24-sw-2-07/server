@@ -67,7 +67,7 @@ function ChangeDeckState(deckJson, socket) {
 }
 
 //change Settings 
-function changeSettings(io, changeJson) {
+function changeSettings(changeJson) {
     const setting = changeJson.key;
     const room = Rooms.get(changeJson.id); 
     room.settings[setting] = changeJson[setting]; 

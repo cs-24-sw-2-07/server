@@ -2,7 +2,7 @@
 import express from "express"
 import http from "http"
 import { Server } from "socket.io"
-import { CreateLobby, changeSettings, joinLobby, leaveLobby, deleteLobby } from "./Lobby.js" // TODO: Make this work
+import { CreateLobby, changeSettings, joinLobby, leaveLobby, deleteLobby, ChangeDeckState } from "./Lobby.js" // TODO: Make this work
 const app = express()
 const server = http.createServer(app) 
  
@@ -37,8 +37,8 @@ io.on("connection", (socket) => {
   }); 
   socket.on("changeSettings", changeJson => {
       const change = JSON.parse(changeJson);
-      changeSettings(io, change);
-      socket.to(changeJson.id).emit(JSON.stringify(changeJson));
+      changeSettings(change);
+      socket.to(`/${changeJson.id}`).emit(JSON.stringify(changeJson));
   });
   //socket.on("DeleteLobby", id => {})
   socket.on("joinLobby", data => {
@@ -49,6 +49,12 @@ io.on("connection", (socket) => {
   //socket.on("leaveLobby", id => {});
 
 
+
+
+  socket.on("DeckChose", data => {
+    data = JSON.parse(data); 
+    ChangeDeckState(data, socket);
+  });
 });
 export { Rooms };
 // Start application server
