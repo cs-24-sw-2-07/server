@@ -41,14 +41,14 @@ io.on("connection", (socket) => {
       socket.to(changeJson.id).emit(JSON.stringify(changeJson));
   });
   //socket.on("DeleteLobby", id => {})
-  socket.on("joinLobby", data => {
-    socket.on(`joinlobby`, (roomcode)
-    data = JSON.parse(data));
-    let id = data.id;
-    Rooms.get(id) ? joinLobby(id) : socket.emit("RoomNotExist");
+  socket.on("joinLobby", playerJson => {
+    playerJson = JSON.parse(playerJson)
+    Rooms.get(`/${playerJson.id}`) ? joinLobby(playerJson, socket) : socket.emit("RoomNotExist");
   }); 
   //socket.on("leaveLobby", id => {});
-
+socket.on("leaveLobby", playerJson =>{
+  
+})
 
 });
 export { Rooms };
