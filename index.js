@@ -43,12 +43,12 @@ io.on("connection", (socket) => {
   //socket.on("DeleteLobby", id => {})
   socket.on("joinLobby", playerJson => {
     playerJson = JSON.parse(playerJson)
-    Rooms.get(`/${playerJson.id}`) ? joinLobby(playerJson, socket) : socket.emit("RoomNotExist");
+    Rooms.get(`/${playerJson.id}`) ? joinLobby(playerJson, socket) : socket.emit("RoomDoesntExist");
   }); 
   //socket.on("leaveLobby", id => {});
-socket.on("leaveLobby", playerJson =>{
+socket.on("leaveLobby", playerJson => {
   
-})
+});
 
 
 
@@ -57,6 +57,7 @@ socket.on("leaveLobby", playerJson =>{
     ChangeDeckState(data, socket.id);
   });
 });
+// Make Rooms visible to other js-files
 export { Rooms };
 // Start application server
 server.listen(3000, () => {
