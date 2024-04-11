@@ -72,8 +72,8 @@ function changeSettings(changeJson) {
     const room = Rooms.get(changeJson.id); 
     room.settings[setting] = changeJson[setting]; 
 }
-/* SLET SENERE
-changeJson = {
+//! SLET SENERE
+/*changeJson = {
   id: idnum,
   key: life
   life: newVal 

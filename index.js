@@ -14,7 +14,7 @@ const io = new Server(server, {
   }
 })
 
-// This map contains all rooms and socket connections within the map
+// This map contains all rooms and every room's states
 const Rooms = new Map();
 
 // Basic app routing
@@ -38,7 +38,7 @@ io.on("connection", (socket) => {
   socket.on("changeSettings", changeJson => {
       const change = JSON.parse(changeJson);
       changeSettings(change);
-      socket.to(`/${changeJson.id}`).emit(JSON.stringify(changeJson));
+      socket.to(`/${changeJson.id}`).emit("changeSetting", JSON.stringify(changeJson));
   });
   //socket.on("DeleteLobby", id => {})
   socket.on("joinLobby", playerJson => {
@@ -54,7 +54,7 @@ socket.on("leaveLobby", playerJson =>{
 
   socket.on("DeckChose", data => {
     data = JSON.parse(data); 
-    ChangeDeckState(data, socket);
+    ChangeDeckState(data, socket.id);
   });
 });
 export { Rooms };
