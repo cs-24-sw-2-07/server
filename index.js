@@ -41,16 +41,6 @@ io.on("connection", (socket) => {
       socket.to(`/${changeJson.id}`).emit("changeSetting", JSON.stringify(changeJson));
   });
   //socket.on("DeleteLobby", id => {})
-<<<<<<< HEAD
-  socket.on("joinLobby", playerJson => {
-    playerJson = JSON.parse(playerJson)
-    Rooms.get(`/${playerJson.id}`) ? joinLobby(playerJson, socket) : socket.emit("RoomDoesntExist");
-  }); 
-  //socket.on("leaveLobby", id => {});
-socket.on("leaveLobby", playerJson => {
-  
-});
-=======
 socket.on("joinLobby", playerJson => {
   playerJson = JSON.parse(playerJson)
   Rooms.get(`/${playerJson.id}`) ? joinLobby(playerJson, socket) : socket.emit("RoomNotExist");
@@ -68,7 +58,6 @@ socket.on("deleteLobby", data =>{
   let Room = data.id
   io.to(`/${Room}`).emit("RoomsIsNoLongerAvailable", JSON.stringify(data))
 })
->>>>>>> 53c13e8734846ac7a23b076544d2afc6388fb71e
 
 
 
@@ -77,7 +66,6 @@ socket.on("deleteLobby", data =>{
     ChangeDeckState(data, socket.id);
   });
 });
-// Make Rooms visible to other js-files
 export { Rooms };
 // Start application server
 server.listen(3000, () => {

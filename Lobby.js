@@ -89,13 +89,17 @@ function joinLobby(playerJson, socket){
 }
         
 
-function leaveLobby(playerJson){
-    playerJson = JSON.parse(playerJson)
-    Rooms.get(`/${playerJson.id}`)
-    let Room = Rooms.get(`/${playerJson.id}`)
-    Room.players.delete(playerJson.id)
-    
-}
+function leaveLobby(playerJson, socket){
+    socket.emit ("leave lobby", () =>{
+        let name = Rooms.get(playerJson).players.get(playerJson).name;
+        console.log("A player has left the lobby");
+        Rooms.players.delete(socket.id, {
+                "name": name,
+                "decks": null,
+                "ready": false
+                })
+            }
+        )}
 
 function deleteLobby(id, io, Rooms){
     if (Rooms[id]){
