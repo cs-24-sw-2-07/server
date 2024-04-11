@@ -39,7 +39,7 @@ function RoomSetUp(socket, io, id, name){
         "players": new Map(),
         "settings": JSON.parse(settings)
     };
-    let playerVal = { 
+    let playerVal = {
         "name": name, 
         "deck": null,
         "ready": false
@@ -57,11 +57,11 @@ function SendSettingsAndId(io, id) {
 }
 
 //Choose Decks
-function ChangeDeckState(deckJson, socket) {
+function ChangeDeckState(deckJson, playerID) {
     // Get the Room
     const room = Rooms.get(deckJson.id);
     // Get the player
-    const player = room.players.get(socket.id); 
+    const player = room.players.get(playerID); 
     // Assign the players deck
     player.deck = deckJson.deck;
 }
