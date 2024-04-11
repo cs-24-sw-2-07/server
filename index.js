@@ -41,13 +41,22 @@ io.on("connection", (socket) => {
       socket.to(`/${changeJson.id}`).emit(JSON.stringify(changeJson));
   });
   //socket.on("DeleteLobby", id => {})
-  socket.on("joinLobby", playerJson => {
-    playerJson = JSON.parse(playerJson)
-    Rooms.get(`/${playerJson.id}`) ? joinLobby(playerJson, socket) : socket.emit("RoomNotExist");
+socket.on("joinLobby", playerJson => {
+  playerJson = JSON.parse(playerJson)
+  Rooms.get(`/${playerJson.id}`) ? joinLobby(playerJson, socket) : socket.emit("RoomNotExist");
   }); 
   //socket.on("leaveLobby", id => {});
 socket.on("leaveLobby", playerJson =>{
-  
+  let playerleftJson = {id:playerJson.id}
+  leaveLobby
+  io.to(`/${playerJson.id}`).emit("PlayerLeftTheLobby", JSON.stringify(playerleftJson))
+})
+
+socket.on("deleteLobby", data =>{
+  data = JSON.parse(data)
+  deleteLobby(io, data)
+  let Room = data.id
+  io.to(`/${Room}`).emit("RoomsIsNoLongerAvailable", JSON.stringify(data))
 })
 
 
