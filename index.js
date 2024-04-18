@@ -3,7 +3,7 @@ import express from "express"
 import http from "http"
 import { Server } from "socket.io"
 import { CreateLobby, changeSettings, joinLobby, leaveLobby, deleteLobby, ChangeDeckState, StartGame, PlayerReady } from "./Lobby.js" // TODO: Make this work
-import { domainToASCII } from "url"
+//import { domainToASCII } from "url"
 const app = express()
 const server = http.createServer(app)
 
@@ -65,12 +65,12 @@ io.on("connection", socket => {
 	});
 
 	//socket.on player ready 
-	socket.on("PlayerReady", data=>{
-		PlayerReady(socketID,lobbyStateObj); 
+	socket.on("PlayerReady", lobbyStateObj => {
+		PlayerReady(socket.id,lobbyStateObj); 
 	});
 	
 	//socket.on start game
-	socket.on("StartGame", data =>{
+	socket.on("StartGame", () =>{
 		StartGame(lobbyStateObj); 
 	});
 });
