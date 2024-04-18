@@ -63,17 +63,19 @@ io.on("connection", socket => {
 		data = JSON.parse(data);
 		ChangeDeckState(data, socket.id);
 	});
+
+	//socket.on player ready 
+	socket.on("PlayerReady", data=>{
+		PlayerReady(socketID,lobbyStateObj); 
+	});
+	
+	//socket.on start game
+	socket.on("StartGame", data =>{
+		StartGame(lobbyStateObj); 
+	});
 });
 
-//socket.on player ready 
-socket.on("PlayerReady", data=>{
-  PlayerReady(socketID,lobbyStateObj); 
-})
 
-//socket.on start game
-socket.on("StartGame", data =>{
-  StartGame(lobbyStateObj); 
-} )
 
 
 export { Rooms };
