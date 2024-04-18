@@ -4,15 +4,16 @@ import fs from "fs";
 // ========================================= host lobby ===============================================================
 
 // lobby page loaded
-function CreateLobby(socket, io, data) {
+function CreateLobby(socket, io, displayName) {
     // Create map for rooms
     const id = CreateLobbyID(); 
 
     // Sets up room and pushes to room map 
-    RoomSetUp(socket, io, id, data.name); 
+    RoomSetUp(socket, id, displayName); 
 
     // Sends the default settings to the host
     SendSettingsAndId(socket, io, id);
+    console.log("got here");
 }
 
 function CreateLobbyID() {
@@ -29,7 +30,7 @@ function CreateLobbyID() {
 
 function RoomSetUp(socket, io, id, name){
     const pathID = "/" + id; 
-    io.of(pathID).adapter.on("create-room", (room) => {
+    socket.of(pathID).adapter.on("create-room", (room) => {
         console.log(`room ${room} was created`);
     });
     // The lobby state is added to the rooms map as a value to the given room id 
@@ -52,8 +53,10 @@ function SendSettingsAndId(io, id) {
     const pathID = "/" + id; 
     let LobbyJson = fs.readFileSync("./settings.json");
 
-    const data = JSON.stringify(LobbyJson);
-    io.to(pathID).emit(data);
+    const data = JSON.parse(LobbyJson);
+    data.id = id;
+
+    io.to(pathID).emit("lobbyCreated", data);
 }
 
 //Choose Decks
@@ -82,10 +85,10 @@ function changeSettings(changeJson) {
 
 function joinLobby(playerJson, socket){
     let name = Rooms.get(playerJson).players.get(playerJson).name;
-                socket.join(Rooms);
-                console.log(name + "has joined the lobby");
-                socket.to(Rooms).emit(name+"joined", socket.id);
-                Rooms.get(`/${playerJson.id}`)
+    socket.join(Rooms);
+    console.log(name + "has joined the lobby");
+    socket.to(Rooms).emit(name+"joined", socket.id);
+    Rooms.get(`/${playerJson.id}`);
 }
         
 
