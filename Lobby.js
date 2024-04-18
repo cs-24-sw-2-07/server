@@ -1,5 +1,5 @@
 import { Rooms } from "./index.js";
-export { CreateLobby, changeSettings, joinLobby, leaveLobby, deleteLobby, ChangeDeckState };
+export { CreateLobby, changeSettings, joinLobby, leaveLobby, deleteLobby, ChangeDeckState, StartGame, PlayerReady };
 import fs from "fs"; 
 // ========================================= host lobby ===============================================================
 
@@ -109,6 +109,30 @@ function deleteLobby(id, io, Rooms){
 }
 // Start Game
 
+function StartGame(lobbyStateObj){
+for( let playerData of lobbyStateObj.players.values()){
+    if (playerData.ready === false) {
+        return false;
+    } 
+}
+return true;
+}
+
+// players ready 
+
+function PlayerReady(socketID,lobbyStateObj){
+
+    const playerData= lobbyStateObj.players.get(socketID)
+    if(playerData.deck !== null){
+        playerData.ready = true;
+        return true;
+    }
+    else {return false;}
+
+
+}
+
+// funktion der kan genkende når en anden funktion bliver udført som så køre efterfølgende ( skal laves på client side) 
 
 
 // ========================================= joined lobby ============================================================== 
