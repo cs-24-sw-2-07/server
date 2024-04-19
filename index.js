@@ -24,9 +24,12 @@ const Rooms = new Map();
 
 // Handle socket connections
 io.on("connection", socket => {
-	console.log("a user has connected"); 
+	console.log(`a user with the id: ${socket.id} has connected`); 
 	socket.on("buttonClick", (count) => {
 		console.log(socket.id, "has clicked the button", count, "times")
+	});
+	socket.on("disconnect", () => {
+		console.log(`a user with the id: ${socket.id} has disconnected`);
 	});
 
 	/* ============ Lobby Handler =========== */
@@ -76,7 +79,7 @@ server.listen(3000, () => {
 });
 
 /*
-	All events that work client side: 
+	Events - client side: 
 	- lobbyCreated
 	- RoomNotExist
 	- changeSetting
@@ -84,7 +87,7 @@ server.listen(3000, () => {
 	- playerLeft
 	- lobbyDeleted
 
-	Events that work server side: 
+	Events - server side: 
 	- createLobby
 	- changeSettings
 	- joinLobby

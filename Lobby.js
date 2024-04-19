@@ -5,18 +5,25 @@ import fs from "fs";
 // ========================================= host lobby ===============================================================
 
 // lobby page loaded
-function CreateLobby(socket, io, displayName) {
+function CreateLobby(socket, displayName) {
     // Create map for rooms
-    const id = CreateLobbyID(); 
-    console.log(id);
-    // Sets up room and pushes to room map 
-    RoomSetUp(socket, id, displayName); 
+    //TODO: When done reinstate this
+    //const id = CreateLobbyID(); 
+    const id = "12345";
+    const pathID = `/${id}`;
+    socket.join(pathID);
 
-    // Sends the default settings to the host
-    SendSettingsAndId(socket, id);
+    // Sets up roomObj and pushes to room map 
+    let settingsJson = JSON.parse(fs.readFileSync("./settings.json"));
+    let roomObj = roomStateObj(socket, id, displayName, settingsJson); 
+    Rooms.set(id, roomObj);
+
+    // Sends the default settings and ID to the host
+    settingsJson.id = id;
+    socket.emit("lobbyCreated", settingsJson);
 }
 
-function CreateLobbyID() {
+/*function CreateLobbyID() {
     let numbers;
     do {
         numbers = "";
@@ -24,46 +31,33 @@ function CreateLobbyID() {
             numbers += Math.floor(Math.random()*10); 
         }
     } while (Rooms.get(numbers)); 
-    const id = numbers; 
+    const id = String(numbers); 
     return id; 
+}*/
+
+function roomStateObj(socket, Roomid, name, settings){
+    // The lobby state is added to the rooms map as a value to the given room id 
+    let lobbyStateObj = {
+        "id": Roomid, 
+        "players": new Map(),
+        "settings": settings
+    };
+    lobbyStateObj.players.set(socket.id, createPlayer(name));
+    return lobbyStateObj; 
 }
 
-function RoomSetUp(socket, id, name){
-    const pathID = `/${id}`; 
-
-    // The lobby state is added to the rooms map as a value to the given room id 
-    let settings = fs.readFileSync("./settings.json");
-    let settingsJson = JSON.parse(settings);
-    let lobbyStateObj = {
-        "id": id, 
-        "players": new Map(),
-        "settings": settingsJson
-    };
-    let playerVal = {
+function createPlayer(name) {
+    return {
         "name": name, 
         "deck": null,
         "ready": false
     };
-    lobbyStateObj.players.set(socket.id, playerVal);
-
-    socket.join(pathID);
-    Rooms.set(id, lobbyStateObj);
-}
-
-function SendSettingsAndId(socket, id) {
-    let LobbyJson = fs.readFileSync("./settings.json");
-    const data = JSON.parse(LobbyJson);
-    data.id = String(id);
-    socket.emit("lobbyCreated", data);
-}
+} 
 
 //Choose Decks
 function ChangeDeckState(deckJson, playerID) {
-    // Get the Room
     const room = Rooms.get(deckJson.id);
-    // Get the player
     const player = room.players.get(playerID); 
-    // Assign the players deck
     player.deck = deckJson.deck;
 }
 
@@ -72,14 +66,7 @@ function changeSettings(changeJson) {
     const setting = changeJson.key;
     const room = Rooms.get(changeJson.id); 
     room.settings[setting] = changeJson[setting]; 
-    console.log(room);
 }
-//! SLET SENERE
-/*changeJson = {
-  id: idnum,
-  key: life
-  life: newVal 
-}*/
 
 function joinLobby(playerJson, socket){
     let name = Rooms.get(playerJson).players.get(playerJson).name;
