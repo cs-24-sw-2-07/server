@@ -2,7 +2,7 @@
 import express from "express"
 import http from "http"
 import { Server } from "socket.io"
-import { CreateLobby, changeSettings, joinLobby, leaveLobby, deleteLobby, ChangeDeckState, StartGame, PlayerReady } from "./Lobby.js" // TODO: Make this work
+import { CreateLobby, changeSettings, joinLobbyV2, leaveLobby, deleteLobby, ChangeDeckState, StartGame, PlayerReady } from "./Lobby.js" // TODO: Make this work
 //import { domainToASCII } from "url"
 const app = express()
 const server = http.createServer(app)
@@ -22,7 +22,7 @@ const Rooms = new Map();
 //  res.sendFile(__dirname + '/index.html');
 // }); 
 
-// Handle socket connections
+// Handle socket connection
 io.on("connection", socket => {
 	console.log(`a user with the id: ${socket.id} has connected`); 
 	socket.on("buttonClick", (count) => {
@@ -34,26 +34,33 @@ io.on("connection", socket => {
 
 	/* ============ Lobby Handler =========== */
 	socket.on("createLobby", (data) => {
-		CreateLobby(socket, io, data.name);
+		console.log("Lobby was created");
+		CreateLobby(socket, data.name);
 	});
 	socket.on("changeSettings", changeJson => {
+		//!Remove console.log
 		console.log(changeJson);
 		changeSettings(changeJson);
 		socket.to(`/${changeJson.id}`).emit("changeSetting", changeJson);
 	});
-	socket.on("joinLobby", playerJson => {
-		Rooms.get(`/${playerJson.id}`) ? joinLobby(playerJson, socket) : socket.emit("RoomNotExist");
+	socket.on("joinLobby", joinData => {
+		Rooms.get(`/${joinData.id}`) ? joinLobbyV2(joinData, socket) : socket.emit("RoomNotExist");
+		//!Remove console.log
+		console.log(Rooms.get(`/${joinData.id}`).players);
 	});
-	socket.on("leaveLobby", playerJson => {
-		let playerleftJson = { id: playerJson.id }
-		leaveLobby
-		io.to(`/${playerJson.id}`).emit("playerLeft", JSON.stringify(playerleftJson))
+	socket.on("leaveLobby", leaveData => {
+		//let playerleftJson = { id: playerJson.id }
+		socket.to(`/${leaveData.id}`).emit("playerLeft", leaveData);
+		leaveLobby(leaveData.id, socket);
 	});
-	socket.on("deleteLobby", data => {
-		data = JSON.parse(data)
-		deleteLobby(io, data)
-		let Room = data.id
-		io.to(`/${Room}`).emit("lobbyDeleted", JSON.stringify(data))
+	socket.on("deleteLobby", deleteData => {
+		deleteLobby(deleteData.id, socket);
+		let Room = deleteData.id;
+		socket.to(`/${Room}`).emit("lobbyDeleted", "lobby deleted");
+		//TODO: Find a way to make this work --> Alternatively, let the event on client side, do the work
+		//io.to(`/${deleteData.id}`).socketsLeave(`/${deleteData.id}`);
+		//socket.emit("hostLobbyDeleted");
+
 	});
 
 	socket.on("DeckChose", data => {

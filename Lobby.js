@@ -15,8 +15,8 @@ function CreateLobby(socket, displayName) {
 
     // Sets up roomObj and pushes to room map 
     let settingsJson = JSON.parse(fs.readFileSync("./settings.json"));
-    let roomObj = roomStateObj(socket, id, displayName, settingsJson); 
-    Rooms.set(id, roomObj);
+    let roomObj = roomStateObj(socket, pathID, displayName, settingsJson); 
+    Rooms.set(pathID, roomObj);
 
     // Sends the default settings and ID to the host
     settingsJson.id = id;
@@ -56,7 +56,7 @@ function createPlayer(name) {
 
 //Choose Decks
 function ChangeDeckState(deckJson, playerID) {
-    const room = Rooms.get(deckJson.id);
+    const room = Rooms.get(`/${deckJson.id}`);
     const player = room.players.get(playerID); 
     player.deck = deckJson.deck;
 }
@@ -64,7 +64,7 @@ function ChangeDeckState(deckJson, playerID) {
 //change Settings 
 function changeSettings(changeJson) {
     const setting = changeJson.key;
-    const room = Rooms.get(changeJson.id); 
+    const room = Rooms.get(`/${changeJson.id}`); 
     room.settings[setting] = changeJson[setting]; 
 }
 
@@ -75,17 +75,15 @@ function joinLobby(playerJson, socket){
     socket.to(Rooms).emit(name+"joined", socket.id);
     Rooms.get(`/${playerJson.id}`);
 }
-        
 
-function leaveLobby(playerJson){
+function leaveLobby(playerJson, socket){
     playerJson = JSON.parse(playerJson)
     Rooms.get(`/${playerJson.id}`)
     let Room = Rooms.get(`/${playerJson.id}`)
-    Room.players.delete(playerJson.id)
-    
+    Room.players.delete(socket.id)
 }
 
-function deleteLobby(id, io, Rooms){
+function deleteLobby(id, io, changeJson){
     if (Rooms[id]){
     io.in(id).socketsLeave(id);
     delete Rooms[id];
@@ -95,8 +93,10 @@ function deleteLobby(id, io, Rooms){
         return false
     }
 }
-// Start Game
 
+
+
+// Start Game
 function StartGame(lobbyStateObj){
 for( let playerData of lobbyStateObj.players.values()){
     if (playerData.ready === false) {
