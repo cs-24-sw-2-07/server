@@ -7,7 +7,6 @@ import { CreateLobby, changeSettings, joinLobby, leaveLobby, deleteLobby, Change
 const app = express()
 const server = http.createServer(app)
 
-
 // Socket server that makes use of the above http app server:
 const io = new Server(server, {
 	cors: {
@@ -79,7 +78,7 @@ io.on("connection", socket => {
 
 
 
-export { Rooms };
+export { Rooms, io };
 // Start application server
 server.listen(3000, () => {
 	console.log("listening on *:3000");

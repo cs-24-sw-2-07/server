@@ -1,4 +1,4 @@
-import { Rooms } from "./index.js";
+import { Rooms, io } from "./index.js";
 export { CreateLobby, changeSettings, joinLobby, leaveLobby, deleteLobby, ChangeDeckState, StartGame, PlayerReady };
 import fs from "fs"; 
 // ========================================= host lobby ===============================================================
