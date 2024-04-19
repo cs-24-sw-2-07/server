@@ -8,13 +8,12 @@ import fs from "fs";
 function CreateLobby(socket, io, displayName) {
     // Create map for rooms
     const id = CreateLobbyID(); 
-
+    console.log(id);
     // Sets up room and pushes to room map 
-    RoomSetUp(socket, io, id, displayName); 
+    RoomSetUp(socket, id, displayName); 
 
     // Sends the default settings to the host
-    SendSettingsAndId(socket, io, id);  
-    console.log("got here");
+    SendSettingsAndId(socket, id);
 }
 
 function CreateLobbyID() {
@@ -29,15 +28,8 @@ function CreateLobbyID() {
     return id; 
 }
 
-function RoomSetUp(socket, io, id, name){
+function RoomSetUp(socket, id, name){
     const pathID = `/${id}`; 
-    io.of(pathID).adapter.on("create-room", (room) => {
-        console.log(`room ${room} was created`);
-    });
-    socket.join(pathID); 
-
-    io.emit("joinRoom", pathID);
-    io.to(pathID).emit("test", "test2");
 
     // The lobby state is added to the rooms map as a value to the given room id 
     let settings = fs.readFileSync("./settings.json");
@@ -47,28 +39,22 @@ function RoomSetUp(socket, io, id, name){
         "players": new Map(),
         "settings": settingsJson
     };
-    //console.log("test");
-    //console.log(name);
     let playerVal = {
         "name": name, 
         "deck": null,
         "ready": false
     };
     lobbyStateObj.players.set(socket.id, playerVal);
-    //console.log(lobbyStateObj);
 
     socket.join(pathID);
     Rooms.set(id, lobbyStateObj);
 }
 
-function SendSettingsAndId(socket, io, id) {
-    const pathID = "/" + id; 
+function SendSettingsAndId(socket, id) {
     let LobbyJson = fs.readFileSync("./settings.json");
-
     const data = JSON.parse(LobbyJson);
-    data.id = id;
-
-    io.to(pathID).emit("lobbyCreated", data);
+    data.id = String(id);
+    socket.emit("lobbyCreated", data);
 }
 
 //Choose Decks
@@ -86,14 +72,14 @@ function changeSettings(changeJson) {
     const setting = changeJson.key;
     const room = Rooms.get(changeJson.id); 
     room.settings[setting] = changeJson[setting]; 
+    console.log(room);
 }
 //! SLET SENERE
 /*changeJson = {
   id: idnum,
   key: life
   life: newVal 
-} 
-*/
+}*/
 
 function joinLobby(playerJson, socket){
     let name = Rooms.get(playerJson).players.get(playerJson).name;

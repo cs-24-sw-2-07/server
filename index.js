@@ -32,17 +32,14 @@ io.on("connection", socket => {
 
 	/* ============ Lobby Handler =========== */
 	socket.on("createLobby", (data) => {
-    console.log(data.name);
-		CreateLobby(socket,io, data.name);
+		CreateLobby(socket, io, data.name);
 	});
 	socket.on("changeSettings", changeJson => {
-		const change = JSON.parse(changeJson);
-		changeSettings(change);
-		socket.to(`/${changeJson.id}`).emit("changeSetting", JSON.stringify(changeJson));
+		console.log(changeJson);
+		changeSettings(changeJson);
+		socket.to(`/${changeJson.id}`).emit("changeSetting", changeJson);
 	});
-	//socket.on("DeleteLobby", id => {})
 	socket.on("joinLobby", playerJson => {
-		playerJson = JSON.parse(playerJson)
 		Rooms.get(`/${playerJson.id}`) ? joinLobby(playerJson, socket) : socket.emit("RoomNotExist");
 	});
 	//socket.on("leaveLobby", id => {});
