@@ -1,4 +1,5 @@
-import { Rooms, io } from "./index.js";
+import path from "path";
+import { Rooms } from "./index.js";
 export { CreateLobby, changeSettings, joinLobby, leaveLobby, deleteLobby, ChangeDeckState, StartGame, PlayerReady };
 import fs from "fs"; 
 // ========================================= host lobby ===============================================================
@@ -12,7 +13,7 @@ function CreateLobby(socket, io, displayName) {
     RoomSetUp(socket, io, id, displayName); 
 
     // Sends the default settings to the host
-    SendSettingsAndId(socket, io, id);
+    SendSettingsAndId(socket, io, id);  
     console.log("got here");
 }
 
@@ -29,10 +30,15 @@ function CreateLobbyID() {
 }
 
 function RoomSetUp(socket, io, id, name){
-    const pathID = "/" + id; 
-    socket.of(pathID).adapter.on("create-room", (room) => {
+    const pathID = `/${id}`; 
+    io.of(pathID).adapter.on("create-room", (room) => {
         console.log(`room ${room} was created`);
     });
+    socket.join(pathID); 
+
+    io.emit("joinRoom", pathID);
+    io.to(pathID).emit("test", "test2");
+
     // The lobby state is added to the rooms map as a value to the given room id 
     let settings = fs.readFileSync("./settings.json");
     let settingsJson = JSON.parse(settings);
@@ -41,15 +47,15 @@ function RoomSetUp(socket, io, id, name){
         "players": new Map(),
         "settings": settingsJson
     };
-    console.log("test");
-    console.log(name);
+    //console.log("test");
+    //console.log(name);
     let playerVal = {
         "name": name, 
         "deck": null,
         "ready": false
     };
     lobbyStateObj.players.set(socket.id, playerVal);
-    console.log(lobbyStateObj);
+    //console.log(lobbyStateObj);
 
     socket.join(pathID);
     Rooms.set(id, lobbyStateObj);

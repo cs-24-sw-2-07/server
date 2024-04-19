@@ -33,7 +33,7 @@ io.on("connection", socket => {
 	/* ============ Lobby Handler =========== */
 	socket.on("createLobby", (data) => {
     console.log(data.name);
-		CreateLobby(socket, io, data.name);
+		CreateLobby(socket,io, data.name);
 	});
 	socket.on("changeSettings", changeJson => {
 		const change = JSON.parse(changeJson);
@@ -75,10 +75,7 @@ io.on("connection", socket => {
 	});
 });
 
-
-
-
-export { Rooms, io };
+export { Rooms };
 // Start application server
 server.listen(3000, () => {
 	console.log("listening on *:3000");
