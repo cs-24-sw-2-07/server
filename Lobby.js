@@ -9,7 +9,7 @@ function CreateLobby(socket, io, displayName) {
     const id = CreateLobbyID(); 
 
     // Sets up room and pushes to room map 
-    RoomSetUp(socket, id, displayName); 
+    RoomSetUp(socket, io, id, displayName); 
 
     // Sends the default settings to the host
     SendSettingsAndId(socket, io, id);
@@ -35,21 +35,27 @@ function RoomSetUp(socket, io, id, name){
     });
     // The lobby state is added to the rooms map as a value to the given room id 
     let settings = fs.readFileSync("./settings.json");
+    let settingsJson = JSON.parse(settings);
     let lobbyStateObj = {
         "id": id, 
         "players": new Map(),
-        "settings": JSON.parse(settings)
+        "settings": settingsJson
     };
+    console.log("test");
+    console.log(name);
     let playerVal = {
         "name": name, 
         "deck": null,
         "ready": false
     };
-    lobbyStateObj.players.set(socket.id, playerVal); 
+    lobbyStateObj.players.set(socket.id, playerVal);
+    console.log(lobbyStateObj);
+
+    socket.join(pathID);
     Rooms.set(id, lobbyStateObj);
 }
 
-function SendSettingsAndId(io, id) {
+function SendSettingsAndId(socket, io, id) {
     const pathID = "/" + id; 
     let LobbyJson = fs.readFileSync("./settings.json");
 

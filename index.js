@@ -33,7 +33,8 @@ io.on("connection", socket => {
 
 	/* ============ Lobby Handler =========== */
 	socket.on("createLobby", (data) => {
-		CreateLobby(io, data.name);
+    console.log(data.name);
+		CreateLobby(socket, io, data.name);
 	});
 	socket.on("changeSettings", changeJson => {
 		const change = JSON.parse(changeJson);
@@ -71,7 +72,7 @@ io.on("connection", socket => {
 	
 	//socket.on start game
 	socket.on("StartGame", () =>{
-		StartGame(lobbyStateObj); 
+		//StartGame(lobbyStateObj); 
 	});
 });
 
