@@ -24,8 +24,7 @@ const Rooms = new Map();
 
 // Handle socket connections
 io.on("connection", socket => {
-	console.log("a user connected")
-
+	console.log("a user has connected"); 
 	socket.on("buttonClick", (count) => {
 		console.log(socket.id, "has clicked the button", count, "times")
 	});
@@ -42,18 +41,16 @@ io.on("connection", socket => {
 	socket.on("joinLobby", playerJson => {
 		Rooms.get(`/${playerJson.id}`) ? joinLobby(playerJson, socket) : socket.emit("RoomNotExist");
 	});
-	//socket.on("leaveLobby", id => {});
 	socket.on("leaveLobby", playerJson => {
 		let playerleftJson = { id: playerJson.id }
 		leaveLobby
-		io.to(`/${playerJson.id}`).emit("PlayerLeftTheLobby", JSON.stringify(playerleftJson))
+		io.to(`/${playerJson.id}`).emit("playerLeft", JSON.stringify(playerleftJson))
 	});
-
 	socket.on("deleteLobby", data => {
 		data = JSON.parse(data)
 		deleteLobby(io, data)
 		let Room = data.id
-		io.to(`/${Room}`).emit("RoomsIsNoLongerAvailable", JSON.stringify(data))
+		io.to(`/${Room}`).emit("lobbyDeleted", JSON.stringify(data))
 	});
 
 	socket.on("DeckChose", data => {
@@ -67,8 +64,8 @@ io.on("connection", socket => {
 	});
 	
 	//socket.on start game
-	socket.on("StartGame", () =>{
-		//StartGame(lobbyStateObj); 
+	socket.on("startGame", () =>{
+		StartGame(); 
 	});
 });
 
@@ -77,3 +74,22 @@ export { Rooms };
 server.listen(3000, () => {
 	console.log("listening on *:3000");
 });
+
+/*
+	All events that work client side: 
+	- lobbyCreated
+	- RoomNotExist
+	- changeSetting
+	- playerJoined
+	- playerLeft
+	- lobbyDeleted
+
+	Events that work server side: 
+	- createLobby
+	- changeSettings
+	- joinLobby
+	- leaveLobby
+	- deleteLobby
+	- playerReady
+	- startGame
+*/
