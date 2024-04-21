@@ -2,7 +2,7 @@
 import express from "express"
 import http from "http"
 import { Server } from "socket.io"
-import { CreateLobby, changeSettings, joinLobbyV2, leaveLobby, deleteLobby, ChangeDeckState, StartGame, PlayerReady } from "./Lobby.js" // TODO: Make this work
+import { CreateLobby, changeSettings, joinLobby, leaveLobby, deleteLobby, ChangeDeckState, StartGame, PlayerReady } from "./Lobby.js" // TODO: Make this work
 //import { domainToASCII } from "url"
 const app = express()
 const server = http.createServer(app)
@@ -44,7 +44,7 @@ io.on("connection", socket => {
 		socket.to(`/${changeJson.id}`).emit("changeSetting", changeJson);
 	});
 	socket.on("joinLobby", joinData => {
-		Rooms.get(`/${joinData.id}`) ? joinLobbyV2(joinData, socket) : socket.emit("RoomNotExist");
+		Rooms.get(`/${joinData.id}`) ? joinLobby(joinData, socket) : socket.emit("RoomNotExist");
 		//!Remove console.log
 		console.log(Rooms.get(`/${joinData.id}`).players);
 	});
