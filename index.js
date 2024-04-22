@@ -3,7 +3,6 @@ import express from "express"
 import http from "http"
 import { Server } from "socket.io"
 import { CreateLobby, changeSettings, joinLobby, leaveLobby, deleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady } from "./Lobby.js" // TODO: Make this work
-import { Console } from "console"
 //import { domainToASCII } from "url"
 const app = express()
 const server = http.createServer(app)
@@ -23,6 +22,8 @@ const Rooms = new Map();
 //  res.sendFile(__dirname + '/index.html');
 // }); 
 
+//TODO: Add logic to specific decisions: deck doesnt fulfill minCardAmt, lobbySize reached, the changedSetting is unachievable,  
+//TODO: Make comments
 // Handle socket connection
 io.on("connection", socket => {
 	console.log(`a user with the id: ${socket.id} has connected`); 
@@ -34,16 +35,16 @@ io.on("connection", socket => {
 	});
 
 	/* ============ Lobby Handler =========== */
-	socket.on("createLobby", (data) => { //? Works
+	socket.on("createLobby", (data) => {
 		console.log("Lobby was created");
 		const createLobbyObj = CreateLobby(socket, data.name);
 		socket.emit("lobbyCreated", createLobbyObj);
 	});
-	socket.on("changeSettings", changeJson => { //? Works
+	socket.on("changeSettings", changeJson => {
 		changeSettings(changeJson);
 		socket.to(`/${changeJson.id}`).emit("changeSetting", changeJson);
 	});
-	socket.on("joinLobby", joinData => { //? Works
+	socket.on("joinLobby", joinData => {
 		const pathID = `/${joinData.id}`;
 		if(Rooms.get(pathID)) { 
 			joinLobby(joinData, socket)
@@ -53,17 +54,17 @@ io.on("connection", socket => {
 			socket.emit("RoomNotExist");
 		}
 	});
-	socket.on("leaveLobby", leaveData => { //? Works
+	socket.on("leaveLobby", leaveData => {
 		const pathID = `/${leaveData.id}`; 
 		socket.to(pathID).emit("playerLeft");
 		leaveLobby(leaveData, socket);
 	});
-	socket.on("deleteLobby", deleteData => { //? Works
+	socket.on("deleteLobby", deleteData => {
 		const roomID = `/${deleteData.id}`;
 		socket.to(roomID).emit("lobbyDeleted");
 		deleteLobby(deleteData.id, socket);
 	});
-	socket.on("DeckChoose", data => { //? Works
+	socket.on("DeckChoose", data => {
 		const readyPlayers = ChangeDeckState(data, socket.id);
 		if(readyPlayers.host) {
 			socket.to(`/${data.id}`).emit("hostReadyUp", String(readyPlayers.ready));
@@ -73,7 +74,7 @@ io.on("connection", socket => {
 		const readyObj = PlayerReady(socket.id,lobbyStateObj); 
 		socket.to(`/${lobbyStateObj.id}`).emit("readyUp", readyObj); 
 	});
-	socket.on("startGame", startGameState =>{
+	socket.on("startGame", startGameState => {
 		const roomID = `/${startGameState.id}`;
 		if(ShouldStartGame(roomID)) {
 			socket.to(roomID).emit("startedGame");
