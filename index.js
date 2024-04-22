@@ -47,14 +47,15 @@ io.on("connection", socket => {
 	socket.on("joinLobby", joinData => {
 		const pathID = `/${joinData.id}`;
 		if(Rooms.get(pathID)) { 
-			joinLobby(joinData, socket)
-			socket.to(pathID).emit("playerJoined", joinData);
+			const updatePlayers = joinLobby(joinData, socket);
+			socket.to(pathID).emit("playerJoined", updatePlayers.playerAmt);
+			socket.emit("joined", )
 			console.log(joinData.name, "has joined the lobby", pathID);
 		} else {
 			socket.emit("RoomNotExist");
 		}
 	});
-	socket.on("leaveLobby", leaveData => {
+	socket.on("leaveLobby", leaveData => { //TODO: add logic for removing name clientside
 		const pathID = `/${leaveData.id}`; 
 		socket.to(pathID).emit("playerLeft");
 		leaveLobby(leaveData, socket);
@@ -73,6 +74,7 @@ io.on("connection", socket => {
 	socket.on("PlayerReady", lobbyStateObj => {
 		const readyObj = PlayerReady(socket.id,lobbyStateObj); 
 		socket.to(`/${lobbyStateObj.id}`).emit("readyUp", readyObj); 
+		socket.emit("readyUp", readyObj);
 	});
 	socket.on("startGame", startGameState => {
 		const roomID = `/${startGameState.id}`;

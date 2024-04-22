@@ -187,6 +187,11 @@ function joinLobby(playerJson, socket){
     room.players.set(socket.id, createPlayer(playerJson.name, false));
 
     socket.join(pathID);
+    const joinData = {
+        playerAmt: room.players.size,
+
+    }
+    return joinData; 
 }
 
 /**
@@ -198,7 +203,7 @@ function leaveLobby(playerJson, socket){
     const pathID = `/${playerJson.id}`; 
     const Room = Rooms.get(pathID);
     const player = Room.players.get(socket.id);
-    //If the player had readied up then their ready should be counted down
+    //If the player had readied up then the ready counter should be counted down
     if(player.ready)
         Room.ready = Room.ready - 1; 
 
