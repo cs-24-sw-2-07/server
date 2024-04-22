@@ -34,7 +34,7 @@ io.on("connection", socket => {
 		console.log(`a user with the id: ${socket.id} has disconnected`);
 	});
 
-	/* ============ Lobby Handler =========== */
+	//* ================================================= Lobby Handler ======================================================== */
 	socket.on("createLobby", (data) => {
 		console.log("Lobby was created");
 		const createLobbyObj = CreateLobby(socket, data.name);
@@ -44,7 +44,7 @@ io.on("connection", socket => {
 		changeSettings(changeJson);
 		socket.to(`/${changeJson.id}`).emit("changeSetting", changeJson);
 	});
-	socket.on("joinLobby", joinData => {
+	socket.on("joinLobby", joinData => { //TODO: missing logic here
 		const pathID = `/${joinData.id}`;
 		if(Rooms.get(pathID)) { 
 			const updatePlayers = joinLobby(joinData, socket);
@@ -100,7 +100,10 @@ io.on("connection", socket => {
 		} else {
 			console.log("Room doesnt exist");
 		}
-	})
+	});
+
+	//* ========================================Battle Page Handler ======================================================= */
+
 });
 
 export { Rooms };
