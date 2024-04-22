@@ -92,13 +92,11 @@ io.on("connection", socket => {
 	socket.on("test", roomID => {
 		if(Rooms.get(roomID)) {
 			const Room = Rooms.get(roomID); 
-			console.log("The room: \n\n" +JSON.stringify(Room)+"\n\n"); 
-
+			console.log(`The room:\n${JSON.stringify(Room)}\n\n`); 
 			console.log(`Readied players: ${Room.ready}/${Room.players.size}\n`);
-
 			console.log("Players in the room \n");
 			for (let player of Room.players) {
-				console.log(player, "\n\n");
+				console.log(`${player}\n`);
 			}
 		} else {
 			console.log("Room doesnt exist");
