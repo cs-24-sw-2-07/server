@@ -24,6 +24,9 @@ const Rooms = new Map();
 
 //TODO: Add logic to specific decisions: deck doesnt fulfill minCardAmt, lobbySize reached, the changedSetting is unachievable,  
 //TODO: Make comments
+//TODO: Look into changing received objects with one element to strings
+//TODO: Create consistency through code
+//TODO: Create better event names :P 
 // Handle socket connection
 io.on("connection", socket => {
 	console.log(`a user with the id: ${socket.id} has connected`); 
@@ -35,29 +38,29 @@ io.on("connection", socket => {
 	});
 
 	//* ================================================= Lobby Handler ======================================================== */
-	socket.on("createLobby", (data) => {
+	socket.on("createLobby", createData => {
 		console.log("Lobby was created");
-		const createLobbyObj = CreateLobby(socket, data.name);
+		const createLobbyObj = CreateLobby(socket, createData.name);
 		socket.emit("lobbyCreated", createLobbyObj);
 	});
-	socket.on("changeSettings", changeJson => {
-		changeSettings(changeJson);
-		socket.to(`/${changeJson.id}`).emit("changeSetting", changeJson);
+	socket.on("changeSettings", settingsData => {
+		changeSettings(settingsData);
+		socket.to(`/${settingsData.id}`).emit("changeSetting", settingsData);
 	});
 	socket.on("joinLobby", joinData => { //TODO: missing logic here
-		const pathID = `/${joinData.id}`;
-		if(Rooms.get(pathID)) { 
+		const roomID = `/${joinData.id}`;
+		if(Rooms.get(roomID)) { 
 			const updatePlayers = joinLobby(joinData, socket);
-			socket.to(pathID).emit("playerJoined", updatePlayers.playerAmt);
+			socket.to(roomID).emit("playerJoined", updatePlayers.playerAmt);
 			socket.emit("joined", )
-			console.log(joinData.name, "has joined the lobby", pathID);
+			console.log(joinData.name, "has joined the lobby", roomID);
 		} else {
 			socket.emit("RoomNotExist");
 		}
 	});
 	socket.on("leaveLobby", leaveData => { //TODO: add logic for removing name clientside
-		const pathID = `/${leaveData.id}`; 
-		socket.to(pathID).emit("playerLeft");
+		const roomID = `/${leaveData.id}`; 
+		socket.to(roomID).emit("playerLeft");
 		leaveLobby(leaveData, socket);
 	});
 	socket.on("deleteLobby", deleteData => {
@@ -65,19 +68,19 @@ io.on("connection", socket => {
 		socket.to(roomID).emit("lobbyDeleted");
 		deleteLobby(deleteData.id, socket);
 	});
-	socket.on("DeckChoose", data => {
-		const readyPlayers = ChangeDeckState(data, socket.id);
+	socket.on("DeckChoose", chooseData => {
+		const readyPlayers = ChangeDeckState(chooseData, socket.id);
 		if(readyPlayers.host) {
-			socket.to(`/${data.id}`).emit("hostReadyUp", String(readyPlayers.ready));
+			socket.to(`/${chooseData.id}`).emit("hostReadyUp", String(readyPlayers.ready));
 		}
 	});
-	socket.on("PlayerReady", lobbyStateObj => {
-		const readyObj = PlayerReady(socket.id,lobbyStateObj); 
-		socket.to(`/${lobbyStateObj.id}`).emit("readyUp", readyObj); 
+	socket.on("PlayerReady", readyData => {
+		const readyObj = PlayerReady(socket.id, readyData); 
+		socket.to(`/${readyData.id}`).emit("readyUp", readyObj); 
 		socket.emit("readyUp", readyObj);
 	});
-	socket.on("startGame", startGameState => {
-		const roomID = `/${startGameState.id}`;
+	socket.on("startGame", startData => {
+		const roomID = `/${startData.id}`;
 		if(ShouldStartGame(roomID)) {
 			socket.to(roomID).emit("startedGame");
 			socket.emit("startedGame");

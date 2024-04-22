@@ -187,7 +187,7 @@ function joinLobby(playerJson, socket){
     room.players.set(socket.id, createPlayer(playerJson.name, false));
 
     socket.join(pathID);
-    const joinData = {
+    const joinData = { //TODO: Add every needed element here
         playerAmt: room.players.size,
 
     }
