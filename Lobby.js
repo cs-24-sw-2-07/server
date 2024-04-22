@@ -6,7 +6,6 @@ import fs from "fs";
 
 // lobby page loaded
 function CreateLobby(socket, displayName) {
-    // Create map for rooms
     //TODO: When done reinstate this
     //const id = CreateLobbyID(); 
     const id = "12345";
@@ -17,10 +16,14 @@ function CreateLobby(socket, displayName) {
     let settingsJson = JSON.parse(fs.readFileSync("./settings.json"));
     let roomObj = roomStateObj(socket, pathID, displayName, settingsJson); 
     Rooms.set(pathID, roomObj);
+    console.log(Rooms.get(pathID));
 
     // Sends the default settings and ID to the host
     settingsJson.id = id;
-    socket.emit("lobbyCreated", settingsJson);
+    settingsJson.ready = roomObj.ready; 
+    settingsJson.playerAmt = roomObj.players.size; 
+    console.log(roomObj.players.size);
+    return settingsJson; 
 }
 
 /*function CreateLobbyID() {
@@ -40,17 +43,19 @@ function roomStateObj(socket, Roomid, name, settings){
     let lobbyStateObj = {
         "id": Roomid, 
         "players": new Map(),
-        "settings": settings
+        "settings": settings,
+        "ready": 0
     };
-    lobbyStateObj.players.set(socket.id, createPlayer(name));
+    lobbyStateObj.players.set(socket.id, createPlayer(name, true));
     return lobbyStateObj; 
 }
 
-function createPlayer(name) {
+function createPlayer(name, flag) {
     return {
         "name": name, 
         "deck": null,
-        "ready": false
+        "ready": false,
+        "host": flag
     };
 } 
 
@@ -59,6 +64,11 @@ function ChangeDeckState(deckJson, playerID) {
     const room = Rooms.get(`/${deckJson.id}`);
     const player = room.players.get(playerID); 
     player.deck = deckJson.deck;
+    if(player.host) {
+        player.ready = true; 
+        room.ready = room.ready + 1; 
+    }
+    return room.ready; 
 }
 
 //change Settings 
@@ -69,28 +79,33 @@ function changeSettings(changeJson) {
 }
 
 function joinLobby(playerJson, socket){
-    let name = Rooms.get(playerJson).players.get(playerJson).name;
-    socket.join(Rooms);
-    console.log(name + "has joined the lobby");
-    socket.to(Rooms).emit(name+"joined", socket.id);
-    Rooms.get(`/${playerJson.id}`);
+    const pathID = `/${playerJson.id}`;
+    
+    const room = Rooms.get(pathID); 
+    room.players.set(socket.id, createPlayer(playerJson.name, false));
+
+    socket.join(pathID);
+
+    let name = socket.id; 
+    console.log(name, "has joined the lobby", pathID);
 }
 
 function leaveLobby(playerJson, socket){
-    playerJson = JSON.parse(playerJson)
-    Rooms.get(`/${playerJson.id}`)
-    let Room = Rooms.get(`/${playerJson.id}`)
-    Room.players.delete(socket.id)
+    const pathID = `/${playerJson.id}`; 
+    let Room = Rooms.get(pathID);
+    Room.players.delete(socket.id);
+    Room.ready = Room.ready - 1; 
+    socket.leave(pathID);
 }
 
-function deleteLobby(id, io, changeJson){
-    if (Rooms[id]){
-    io.in(id).socketsLeave(id);
-    delete Rooms[id];
-    return true;
+function deleteLobby(id, io){
+    const pathID = `/${id}`;
+
+    if (Rooms.get(pathID)){
+        io.in(id).socketsLeave(id);
+        Rooms.delete(pathID);
     } else{
         console.error("Room dosen't exist");
-        return false
     }
 }
 
@@ -119,7 +134,7 @@ function PlayerReady(socketID,lobbyStateObj){
 
 
 }
-
+export { Rooms }; 
 // funktion der kan genkende når en anden funktion bliver udført som så køre efterfølgende ( skal laves på client side) 
 
 
