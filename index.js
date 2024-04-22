@@ -51,6 +51,7 @@ io.on("connection", socket => {
 
 		socket.emit(joinLobby, socket.id);
 		socket.to(`/${joinData.id}`).emit("playerJoined", joinData);
+		Rooms.get(`/${joinData.id}`) ? joinLobby(joinData, socket) : socket.emit("RoomNotExist");
 		//!Remove console.log
 		//console.log(Rooms.get(`/${joinData.id}`).players);
 		//console.log(Rooms.get(`/${joinData.id}`));
@@ -80,7 +81,8 @@ io.on("connection", socket => {
 
 	//socket.on player ready 
 	socket.on("PlayerReady", lobbyStateObj => {
-		PlayerReady(socket.id,lobbyStateObj); 
+		const readyObj = PlayerReady(socket.id,lobbyStateObj); 
+		socket.to(`/${lobbyStateObj.id}`).emit("readyUp", readyObj); 
 	});
 	
 	//socket.on start game
