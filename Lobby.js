@@ -66,20 +66,6 @@ function roomStateObj(socket, Roomid, name, settings){
     return lobbyStateObj; 
 }
 
-/**
- * 
- * @param {*} name 
- * @param {*} flag 
- * @returns 
- */
-function createPlayer(name, flag) {
-    return {
-        "name": name, 
-        "deck": null,
-        "ready": false,
-        "host": flag
-    };
-} 
 
 
 /**
@@ -127,26 +113,6 @@ function ShouldStartGame(roomID){
         } 
     }
     return true;
-}
-
-/**
- * 
- * @param {*} deckJson 
- * @param {*} playerID 
- * @returns 
- */
-//Choose Decks
-function ChangeDeckState(deckJson, playerID) {
-    const Room = Rooms.get(`/${deckJson.id}`);
-    const player = Room.players.get(playerID); 
-    player.deck = deckJson.deck;
-    let host = false;
-    if(player.host && !player.ready) {
-        player.ready = true; 
-        Room.ready = Room.ready + 1; 
-        host = true; 
-    }
-    return {ready: Room.ready, host: host}; 
 }
 
 //* ========================================= joined lobby ============================================================== 
@@ -211,5 +177,42 @@ function leaveLobby(playerJson, socket){
     Room.players.delete(socket.id);
     socket.leave(pathID);
 }
+
+//* ====================================================== Both ========================================================= */
+
+/**
+ * 
+ * @param {*} deckJson 
+ * @param {*} playerID 
+ * @returns 
+ */
+//Choose Decks
+function ChangeDeckState(deckJson, playerID) {
+    const Room = Rooms.get(`/${deckJson.id}`);
+    const player = Room.players.get(playerID); 
+    player.deck = deckJson.deck;
+    let host = false;
+    if(player.host && !player.ready) {
+        player.ready = true; 
+        Room.ready = Room.ready + 1; 
+        host = true; 
+    }
+    return {ready: Room.ready, host: host}; 
+}
+/**
+ * 
+ * @param {*} name 
+ * @param {*} flag 
+ * @returns 
+ */
+function createPlayer(name, flag) {
+    return {
+        "name": name, 
+        "deck": null,
+        "ready": false,
+        "host": flag
+    };
+} 
+
 
 export { Rooms }; 
