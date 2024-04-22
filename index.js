@@ -2,7 +2,7 @@
 import express from "express"
 import http from "http"
 import { Server } from "socket.io"
-import { CreateLobby, changeSettings, joinLobby, leaveLobby, deleteLobby, ChangeDeckState, StartGame, PlayerReady } from "./Lobby.js" // TODO: Make this work
+import { CreateLobby, changeSettings, joinLobby, leaveLobby, deleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady } from "./Lobby.js" // TODO: Make this work
 //import { domainToASCII } from "url"
 const app = express()
 const server = http.createServer(app)
@@ -67,15 +67,16 @@ io.on("connection", socket => {
 		console.log(`${Rooms.get(pathID).ready}/${Rooms.get(pathID).players.size}`);
 	});
 	socket.on("deleteLobby", deleteData => {
-		console.log(deleteData);
 		const pathID = `/${deleteData.id}`;
+
+		console.log(deleteData);
 		console.log(Rooms.get(pathID));
-		socket.to(`/${deleteData.id}`).emit("lobbyDeleted", "lobby has been deleted");
+
+		socket.to(`/${deleteData.id}`).emit("lobbyDeleted");
 		deleteLobby(deleteData.id, socket);
 		//TODO: Find a way to make this work --> Alternatively, let the event on client side, do the work
 		//io.to(`/${deleteData.id}`).socketsLeave(`/${deleteData.id}`);
 		//socket.emit("hostLobbyDeleted");
-		
 	});
 	socket.on("DeckChoose", data => {
 		const readyPlayers = ChangeDeckState(data, socket.id);
@@ -90,8 +91,14 @@ io.on("connection", socket => {
 		socket.to(`/${lobbyStateObj.id}`).emit("readyUp", readyObj); 
 	});
 	//socket.on start game
-	socket.on("startGame", () =>{
-		StartGame(); 
+	socket.on("startGame", startGameState =>{
+		const roomID = `/${startGameState.id}`;
+		if(ShouldStartGame(roomID)) {
+			socket.to(roomID).emit("startGame");
+			socket.emit("startGame");
+		} else {
+			socket.emit("CantStartGame");
+		}
 	});
 });
 

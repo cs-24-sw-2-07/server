@@ -1,6 +1,6 @@
 //import path from "path";
 import { Rooms } from "./index.js";
-export { CreateLobby, changeSettings, joinLobby, leaveLobby, deleteLobby, ChangeDeckState, StartGame, PlayerReady };
+export { CreateLobby, changeSettings, joinLobby, leaveLobby, deleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady };
 import fs from "fs"; 
 // ========================================= host lobby ===============================================================
 
@@ -103,25 +103,25 @@ function leaveLobby(playerJson, socket){
 
 function deleteLobby(id, io){
     const pathID = `/${id}`;
-
     if (Rooms.get(pathID)){
-        io.in(id).socketsLeave(id);
+        io.to(id).socketsLeave(id);
         Rooms.delete(pathID);
     } else{
-        console.error("Room dosen't exist");
+        console.error("Room doesn't exist");
     }
 }
 
 
 
 // Start Game
-function StartGame(lobbyStateObj){
-for( let playerData of lobbyStateObj.players.values()){
-    if (playerData.ready === false) {
-        return false;
-    } 
-}
-return true;
+function ShouldStartGame(roomID){
+    const players = Rooms.get(roomID).players; 
+    for(const player of players){
+        if (player.ready === false || player.deck === null) {
+            return false;
+        } 
+    }
+    return true;
 }
 
 // players ready 
