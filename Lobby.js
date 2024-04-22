@@ -16,7 +16,8 @@ function CreateLobby(socket, displayName) {
     let settingsJson = JSON.parse(fs.readFileSync("./settings.json"));
     let roomObj = roomStateObj(socket, pathID, displayName, settingsJson); 
     Rooms.set(pathID, roomObj);
-    console.log(Rooms.get(pathID));
+
+    //!console.log(Rooms.get(pathID));
 
     // Sends the default settings and ID to the host
     settingsJson.id = id;
@@ -64,11 +65,13 @@ function ChangeDeckState(deckJson, playerID) {
     const room = Rooms.get(`/${deckJson.id}`);
     const player = room.players.get(playerID); 
     player.deck = deckJson.deck;
+    let host = false;
     if(player.host) {
         player.ready = true; 
         room.ready = room.ready + 1; 
+        host = true; 
     }
-    return room.ready; 
+    return {ready: room.ready, hostOrNot: host}; 
 }
 
 //change Settings 
@@ -124,15 +127,23 @@ return true;
 // players ready 
 
 function PlayerReady(socketID,lobbyStateObj){
+    const pathID = `/${lobbyStateObj.id}`;
+    console.log(pathID);
+    const Room = Rooms.get(pathID);
+    console.log(Room);
+    const playerData= Room.players.get(socketID);
 
-    const playerData= lobbyStateObj.players.get(socketID)
-    if(playerData.deck !== null){
-        playerData.ready = true;
-        return true;
+    if(playerData.ready) {
+        playerData.ready = false; 
+        Room.ready = Room.ready - 1; 
+    } else {
+        playerData.ready = true; 
+        Room.ready = Room.ready + 1; 
     }
-    else {return false;}
-
-
+    return {
+        name: playerData.name,
+        ready: Room.ready
+    }; 
 }
 export { Rooms }; 
 // funktion der kan genkende når en anden funktion bliver udført som så køre efterfølgende ( skal laves på client side) 

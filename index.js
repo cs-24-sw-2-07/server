@@ -36,7 +36,6 @@ io.on("connection", socket => {
 	socket.on("createLobby", (data) => {
 		console.log("Lobby was created");
 		const createLobbyObj = CreateLobby(socket, data.name);
-		console.log(Rooms.get("/",createLobbyObj.id));
 		socket.emit("lobbyCreated", createLobbyObj);
 	});
 	socket.on("changeSettings", changeJson => {
@@ -47,21 +46,25 @@ io.on("connection", socket => {
 	});
 	socket.on("joinLobby", joinData => {
 		console.log("got here"); 
-		Rooms.get(`/${joinData.id}`) ? joinLobby(joinData, socket) : socket.emit("RoomNotExist");
+		const pathID = `/${joinData.id}`;
+		Rooms.get(pathID) ? joinLobby(joinData, socket) : socket.emit("RoomNotExist");
 
 		socket.emit(joinLobby, socket.id);
-		socket.to(`/${joinData.id}`).emit("playerJoined", joinData);
-		Rooms.get(`/${joinData.id}`) ? joinLobby(joinData, socket) : socket.emit("RoomNotExist");
+		socket.to(pathID).emit("playerJoined", joinData);
+		Rooms.get(pathID) ? joinLobby(joinData, socket) : socket.emit("RoomNotExist");
 		//!Remove console.log
 		//console.log(Rooms.get(`/${joinData.id}`).players);
 		//console.log(Rooms.get(`/${joinData.id}`));
+		console.log(`${Rooms.get(pathID).ready}/${Rooms.get(pathID).players.size}`);
 	});
 	socket.on("leaveLobby", leaveData => {
-		console.log("got here ");
-		console.log(leaveData);
-		//let playerleftJson = { id: playerJson.id }
-		socket.to(`/${leaveData.id}`).emit("playerLeft", leaveData);
+		//!console.log("got here ");
+		//!console.log(leaveData);
+		//!let playerleftJson = { id: playerJson.id }
+		const pathID = `/${leaveData.id}`; 
+		socket.to(pathID).emit("playerLeft");
 		leaveLobby(leaveData, socket);
+		console.log(`${Rooms.get(pathID).ready}/${Rooms.get(pathID).players.size}`);
 	});
 	socket.on("deleteLobby", deleteData => {
 		console.log(deleteData);
@@ -72,19 +75,20 @@ io.on("connection", socket => {
 		//TODO: Find a way to make this work --> Alternatively, let the event on client side, do the work
 		//io.to(`/${deleteData.id}`).socketsLeave(`/${deleteData.id}`);
 		//socket.emit("hostLobbyDeleted");
+		
 	});
-
 	socket.on("DeckChoose", data => {
 		const readyPlayers = ChangeDeckState(data, socket.id);
-		socket.to(`/${data.id}`).emit("hostReadyUp", String(readyPlayers));
+		if(readyPlayers.hostOrNot) {
+			socket.to(`/${data.id}`).emit("hostReadyUp", String(readyPlayers.ready));
+		}
+		console.log(Rooms.get(`/${data.id}`).ready);
 	});
-
 	//socket.on player ready 
 	socket.on("PlayerReady", lobbyStateObj => {
 		const readyObj = PlayerReady(socket.id,lobbyStateObj); 
 		socket.to(`/${lobbyStateObj.id}`).emit("readyUp", readyObj); 
 	});
-	
 	//socket.on start game
 	socket.on("startGame", () =>{
 		StartGame(); 
