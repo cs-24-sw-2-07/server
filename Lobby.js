@@ -9,22 +9,22 @@ function CreateLobby(socket, displayName) {
     //TODO: When done reinstate this
     //const id = CreateLobbyID(); 
     const id = "12345";
-    const pathID = `/${id}`;
-    socket.join(pathID);
+    const RoomID = `/${id}`;
+    socket.join(RoomID);
 
     // Sets up roomObj and pushes to room map 
     let settingsJson = JSON.parse(fs.readFileSync("./settings.json"));
-    let roomObj = roomStateObj(socket, pathID, displayName, settingsJson); 
-    Rooms.set(pathID, roomObj);
-
-    //!console.log(Rooms.get(pathID));
+    let roomObj = roomStateObj(socket, RoomID, displayName, settingsJson); 
+    Rooms.set(RoomID, roomObj);
 
     // Sends the default settings and ID to the host
-    settingsJson.id = id;
-    settingsJson.ready = roomObj.ready; 
-    settingsJson.playerAmt = roomObj.players.size; 
-    console.log(roomObj.players.size);
-    return settingsJson; 
+    const returnState = {
+        ...settingsJson, 
+        id: id,
+        ready: roomObj.ready,
+        playerAmt: roomObj.players.size
+    }
+    return returnState; 
 }
 
 /*function CreateLobbyID() {
@@ -62,23 +62,23 @@ function createPlayer(name, flag) {
 
 //Choose Decks
 function ChangeDeckState(deckJson, playerID) {
-    const room = Rooms.get(`/${deckJson.id}`);
-    const player = room.players.get(playerID); 
+    const Room = Rooms.get(`/${deckJson.id}`);
+    const player = Room.players.get(playerID); 
     player.deck = deckJson.deck;
     let host = false;
-    if(player.host) {
+    if(player.host && !player.ready) {
         player.ready = true; 
-        room.ready = room.ready + 1; 
+        Room.ready = Room.ready + 1; 
         host = true; 
     }
-    return {ready: room.ready, hostOrNot: host}; 
+    return {ready: Room.ready, host: host}; 
 }
 
 //change Settings 
 function changeSettings(changeJson) {
     const setting = changeJson.key;
-    const room = Rooms.get(`/${changeJson.id}`); 
-    room.settings[setting] = changeJson[setting]; 
+    const Room = Rooms.get(`/${changeJson.id}`); 
+    Room.settings[setting] = changeJson[setting]; 
 }
 
 function joinLobby(playerJson, socket){
@@ -88,16 +88,18 @@ function joinLobby(playerJson, socket){
     room.players.set(socket.id, createPlayer(playerJson.name, false));
 
     socket.join(pathID);
-
-    let name = socket.id; 
-    console.log(name, "has joined the lobby", pathID);
 }
 
 function leaveLobby(playerJson, socket){
     const pathID = `/${playerJson.id}`; 
-    let Room = Rooms.get(pathID);
+    const Room = Rooms.get(pathID);
+    const player = Room.players.get(socket.id);
+    //If the player had readied up then their ready should be counted down
+    if(player.ready)
+        Room.ready = Room.ready - 1; 
+
+    //Delete the player from the map
     Room.players.delete(socket.id);
-    Room.ready = Room.ready - 1; 
     socket.leave(pathID);
 }
 
@@ -116,6 +118,9 @@ function deleteLobby(id, io){
 // Start Game
 function ShouldStartGame(roomID){
     const players = Rooms.get(roomID).players; 
+    if(players.size < 2)
+        return false; 
+
     for(const player of players){
         if (player.ready === false || player.deck === null) {
             return false;
@@ -128,12 +133,10 @@ function ShouldStartGame(roomID){
 
 function PlayerReady(socketID,lobbyStateObj){
     const pathID = `/${lobbyStateObj.id}`;
-    console.log(pathID);
     const Room = Rooms.get(pathID);
-    console.log(Room);
     const playerData= Room.players.get(socketID);
 
-    if(playerData.ready) {
+    if(playerData.ready || playerData.deck === null) {
         playerData.ready = false; 
         Room.ready = Room.ready - 1; 
     } else {

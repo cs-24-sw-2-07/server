@@ -3,6 +3,7 @@ import express from "express"
 import http from "http"
 import { Server } from "socket.io"
 import { CreateLobby, changeSettings, joinLobby, leaveLobby, deleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady } from "./Lobby.js" // TODO: Make this work
+import { Console } from "console"
 //import { domainToASCII } from "url"
 const app = express()
 const server = http.createServer(app)
@@ -28,78 +29,75 @@ io.on("connection", socket => {
 	socket.on("buttonClick", (count) => {
 		console.log(socket.id, "has clicked the button", count, "times")
 	});
-	socket.on("disconnect", () => {
+	socket.on("disconnect", () => { 
 		console.log(`a user with the id: ${socket.id} has disconnected`);
 	});
 
 	/* ============ Lobby Handler =========== */
-	socket.on("createLobby", (data) => {
+	socket.on("createLobby", (data) => { //? Works
 		console.log("Lobby was created");
 		const createLobbyObj = CreateLobby(socket, data.name);
 		socket.emit("lobbyCreated", createLobbyObj);
 	});
-	socket.on("changeSettings", changeJson => {
-		//!Remove console.log
-		console.log(changeJson);
+	socket.on("changeSettings", changeJson => { //? Works
 		changeSettings(changeJson);
 		socket.to(`/${changeJson.id}`).emit("changeSetting", changeJson);
 	});
-	socket.on("joinLobby", joinData => {
-		console.log("got here"); 
+	socket.on("joinLobby", joinData => { //? Works
 		const pathID = `/${joinData.id}`;
-		Rooms.get(pathID) ? joinLobby(joinData, socket) : socket.emit("RoomNotExist");
-
-		socket.emit(joinLobby, socket.id);
-		socket.to(pathID).emit("playerJoined", joinData);
-		Rooms.get(pathID) ? joinLobby(joinData, socket) : socket.emit("RoomNotExist");
-		//!Remove console.log
-		//console.log(Rooms.get(`/${joinData.id}`).players);
-		//console.log(Rooms.get(`/${joinData.id}`));
-		console.log(`${Rooms.get(pathID).ready}/${Rooms.get(pathID).players.size}`);
+		if(Rooms.get(pathID)) { 
+			joinLobby(joinData, socket)
+			socket.to(pathID).emit("playerJoined", joinData);
+			console.log(joinData.name, "has joined the lobby", pathID);
+		} else {
+			socket.emit("RoomNotExist");
+		}
 	});
-	socket.on("leaveLobby", leaveData => {
-		//!console.log("got here ");
-		//!console.log(leaveData);
-		//!let playerleftJson = { id: playerJson.id }
+	socket.on("leaveLobby", leaveData => { //? Works
 		const pathID = `/${leaveData.id}`; 
 		socket.to(pathID).emit("playerLeft");
 		leaveLobby(leaveData, socket);
-		console.log(`${Rooms.get(pathID).ready}/${Rooms.get(pathID).players.size}`);
 	});
-	socket.on("deleteLobby", deleteData => {
-		const pathID = `/${deleteData.id}`;
-
-		console.log(deleteData);
-		console.log(Rooms.get(pathID));
-
-		socket.to(`/${deleteData.id}`).emit("lobbyDeleted");
+	socket.on("deleteLobby", deleteData => { //? Works
+		const roomID = `/${deleteData.id}`;
+		socket.to(roomID).emit("lobbyDeleted");
 		deleteLobby(deleteData.id, socket);
-		//TODO: Find a way to make this work --> Alternatively, let the event on client side, do the work
-		//io.to(`/${deleteData.id}`).socketsLeave(`/${deleteData.id}`);
-		//socket.emit("hostLobbyDeleted");
 	});
-	socket.on("DeckChoose", data => {
+	socket.on("DeckChoose", data => { //? Works
 		const readyPlayers = ChangeDeckState(data, socket.id);
-		if(readyPlayers.hostOrNot) {
+		if(readyPlayers.host) {
 			socket.to(`/${data.id}`).emit("hostReadyUp", String(readyPlayers.ready));
 		}
-		console.log(Rooms.get(`/${data.id}`).ready);
 	});
-	//socket.on player ready 
 	socket.on("PlayerReady", lobbyStateObj => {
 		const readyObj = PlayerReady(socket.id,lobbyStateObj); 
 		socket.to(`/${lobbyStateObj.id}`).emit("readyUp", readyObj); 
 	});
-	//socket.on start game
 	socket.on("startGame", startGameState =>{
 		const roomID = `/${startGameState.id}`;
 		if(ShouldStartGame(roomID)) {
-			socket.to(roomID).emit("startGame");
-			socket.emit("startGame");
+			socket.to(roomID).emit("startedGame");
+			socket.emit("startedGame");
 		} else {
 			socket.emit("CantStartGame");
 		}
 	});
+
+	socket.on("test", roomID => {
+		if(Rooms.get(roomID)) {
+			const Room = Rooms.get(roomID); 
+			console.log("The room: \n\n" +JSON.stringify(Room)+"\n\n"); 
+
+			console.log(`Readied players: ${Room.ready}/${Room.players.size}\n`);
+
+			console.log("Players in the room \n");
+			for (let player of Room.players) {
+				console.log(player, "\n\n");
+			}
+		} else {
+			console.log("Room doesnt exist");
+		}
+	})
 });
 
 export { Rooms };
