@@ -57,7 +57,8 @@ io.on("connection", socket => {
 			//Adds the current settings to the Object for the joining player
 			const JoinedreturnData = { ...returnData, ...Room.settings };
 			socket.emit("Lobby", JoinedreturnData);
-			//! Console log console.log(joinData.name, "has joined the lobby", roomID);
+			
+			console.log(joinData.name, "has joined the lobby with id:", roomID);
 		} else {
 			socket.emit("RoomNotExist");
 		}
@@ -97,7 +98,6 @@ io.on("connection", socket => {
 		if(Rooms.get(roomID)) {
 			const Room = Rooms.get(roomID); 
 			console.log(`The room:\n${JSON.stringify(Room)}\n\n`); 
-			console.log(`Readied players: ${Room.ready}/${Room.players.size}\n`);
 			console.log("Players in the room");
 			for (let player of Room.players) {
 				console.table(`${JSON.stringify(player)}\n`);
