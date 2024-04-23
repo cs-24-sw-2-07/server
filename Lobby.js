@@ -20,15 +20,15 @@ function CreateLobby(socket, displayName) {
 
     // Sets up roomObj and pushes to room map 
     let settingsJson = JSON.parse(fs.readFileSync("./settings.json"));
-    let roomObj = roomStateObj(socket, RoomID, displayName, settingsJson); 
+    let roomObj = roomStateObj(socket, displayName, settingsJson); 
     Rooms.set(RoomID, roomObj);
-
+    
+    const playerArr = mapToArrayObj(roomObj.players);
     // Sends the default settings and ID to the host
     const returnState = {
         ...settingsJson, 
         id: id,
-        ready: roomObj.ready,
-        playerAmt: roomObj.players.size
+        players: playerArr
     }
     return returnState; 
 }
@@ -38,7 +38,7 @@ function CreateLobby(socket, displayName) {
     let numbers;
     do {
         numbers = "";
-        for(let i=0; i<5; i++){
+        for(let i=0; i<6; i++){
             numbers += Math.floor(Math.random()*10); 
         }
     } while (Rooms.get(numbers)); 
@@ -54,15 +54,14 @@ function CreateLobby(socket, displayName) {
  * @param {*} settings 
  * @returns 
  */
-function roomStateObj(socket, Roomid, name, settings){
+function roomStateObj(socket, name, settings){
     // The lobby state is added to the rooms map as a value to the given room id 
-    let lobbyStateObj = {
-        "id": Roomid, 
+    let lobbyStateObj = { 
         "players": new Map(),
         "settings": settings,
         "ready": 0
     };
-    lobbyStateObj.players.set(socket.id, createPlayer(name, true));
+    lobbyStateObj.players.set(socket.id, createPlayer(name, true, socket.id));
     return lobbyStateObj; 
 }
 
@@ -150,7 +149,7 @@ function joinLobby(playerJson, socket){
     const pathID = `/${playerJson.id}`;
     
     const room = Rooms.get(pathID); 
-    room.players.set(socket.id, createPlayer(playerJson.name, false));
+    room.players.set(socket.id, createPlayer(playerJson.name, false, socket.id));
 
     socket.join(pathID);
     const joinData = { //TODO: Add every needed element here
@@ -214,5 +213,17 @@ function createPlayer(name, flag) {
     };
 } 
 
+function mapToArrayObj(map) {
+    let array = [];
+    for(const [key, value] of map.entries()) { 
+        array.push({ 
+            name: value.name,
+            ready: value.ready,
+            host: value.host,
+            playerid: key
+        }); 
+    }
+    return array;
+}
 
 export { Rooms }; 

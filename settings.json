@@ -1,5 +1,6 @@
 {
     "deckSize": 15, 
     "handSize" : 5,
-    "life": 3
+    "life": 3,
+    "lobbySize": 2
 }

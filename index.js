@@ -41,7 +41,7 @@ io.on("connection", socket => {
 	socket.on("createLobby", createData => {
 		console.log("Lobby was created");
 		const createLobbyObj = CreateLobby(socket, createData.name);
-		socket.emit("lobbyCreated", createLobbyObj);
+		socket.emit("Lobby", createLobbyObj);
 	});
 	socket.on("changeSettings", settingsData => {
 		changeSettings(settingsData);
@@ -52,7 +52,7 @@ io.on("connection", socket => {
 		if(Rooms.get(roomID)) { 
 			const updatePlayers = joinLobby(joinData, socket);
 			socket.to(roomID).emit("playerJoined", updatePlayers.playerAmt);
-			socket.emit("joined", )
+			socket.emit("Lobby");
 			console.log(joinData.name, "has joined the lobby", roomID);
 		} else {
 			socket.emit("RoomNotExist");
@@ -94,9 +94,9 @@ io.on("connection", socket => {
 			const Room = Rooms.get(roomID); 
 			console.log(`The room:\n${JSON.stringify(Room)}\n\n`); 
 			console.log(`Readied players: ${Room.ready}/${Room.players.size}\n`);
-			console.log("Players in the room \n");
+			console.log("Players in the room");
 			for (let player of Room.players) {
-				console.log(`${player}\n`);
+				console.table(`${JSON.stringify(player)}\n`);
 			}
 		} else {
 			console.log("Room doesnt exist");
