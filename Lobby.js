@@ -58,8 +58,7 @@ function roomStateObj(socket, name, settings){
     // The lobby state is added to the rooms map as a value to the given room id 
     let lobbyStateObj = { 
         "players": new Map(),
-        "settings": settings,
-        "ready": 0
+        "settings": settings
     };
     lobbyStateObj.players.set(socket.id, createPlayer(name, true, socket.id));
     return lobbyStateObj; 
@@ -122,21 +121,15 @@ function ShouldStartGame(roomID){
  * @param {*} lobbyStateObj 
  * @returns 
  */
-function PlayerReady(socketID,lobbyStateObj){
+function PlayerReady(socketID, lobbyStateObj){
     const pathID = `/${lobbyStateObj.id}`;
     const Room = Rooms.get(pathID);
     const playerData= Room.players.get(socketID);
 
-    if(playerData.ready || playerData.deck === null) {
-        playerData.ready = false; 
-        Room.ready = Room.ready - 1; 
-    } else {
-        playerData.ready = true; 
-        Room.ready = Room.ready + 1; 
-    }
+    playerData.ready = playerData.deck === null || playerData.ready  ? false : true;
     return {
-        name: playerData.name,
-        ready: Room.ready
+        ready: playerData.ready,
+        id: socketID
     }; 
 }
 
@@ -145,18 +138,20 @@ function PlayerReady(socketID,lobbyStateObj){
  * @param {*} playerJson 
  * @param {*} socket 
  */
-function joinLobby(playerJson, socket){
-    const pathID = `/${playerJson.id}`;
+function joinLobby(playerJson, roomID, socket){
+    socket.join(roomID);
+
+    const players = Rooms.get(roomID).players; 
+    const player = createPlayer(playerJson.name, false, socket.id); 
+    players.set(socket.id, player);
     
-    const room = Rooms.get(pathID); 
-    room.players.set(socket.id, createPlayer(playerJson.name, false, socket.id));
+    const playersArr = mapToArrayObj(players);
 
-    socket.join(pathID);
-    const joinData = { //TODO: Add every needed element here
-        playerAmt: room.players.size,
-
+    
+    const returnData = { //TODO: Add every needed element here
+        players: playersArr
     }
-    return joinData; 
+    return returnData; 
 }
 
 /**
@@ -181,22 +176,19 @@ function leaveLobby(playerJson, socket){
 
 /**
  * 
- * @param {*} deckJson 
+ * @param {*} deckObj 
  * @param {*} playerID 
  * @returns 
  */
 //Choose Decks
-function ChangeDeckState(deckJson, playerID) {
-    const Room = Rooms.get(`/${deckJson.id}`);
+function ChangeDeckState(deckObj, playerID) {
+    const Room = Rooms.get(`/${deckObj.id}`);
     const player = Room.players.get(playerID); 
-    player.deck = deckJson.deck;
-    let host = false;
+    player.deck = deckObj.deck;
     if(player.host && !player.ready) {
         player.ready = true; 
-        Room.ready = Room.ready + 1; 
-        host = true; 
     }
-    return {ready: Room.ready, host: host}; 
+    return player.host; 
 }
 /**
  * 

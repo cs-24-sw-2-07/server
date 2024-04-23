@@ -49,35 +49,39 @@ io.on("connection", socket => {
 	});
 	socket.on("joinLobby", joinData => { //TODO: missing logic here
 		const roomID = `/${joinData.id}`;
-		if(Rooms.get(roomID)) { 
-			const updatePlayers = joinLobby(joinData, socket);
-			socket.to(roomID).emit("playerJoined", updatePlayers.playerAmt);
-			socket.emit("Lobby");
-			console.log(joinData.name, "has joined the lobby", roomID);
+		const Room = Rooms.get(roomID);
+		if(Room) { 
+			const returnData = joinLobby(joinData, roomID, socket);
+			socket.to(roomID).emit("playerJoined", returnData);
+			
+			//Adds the current settings to the Object for the joining player
+			const JoinedreturnData = { ...returnData, ...Room.settings };
+			socket.emit("Lobby", JoinedreturnData);
+			//! Console log console.log(joinData.name, "has joined the lobby", roomID);
 		} else {
 			socket.emit("RoomNotExist");
 		}
 	});
 	socket.on("leaveLobby", leaveData => { //TODO: add logic for removing name clientside
 		const roomID = `/${leaveData.id}`; 
-		socket.to(roomID).emit("playerLeft");
+		socket.to(roomID).emit("playerLeft", socket.id);
 		leaveLobby(leaveData, socket);
 	});
-	socket.on("deleteLobby", deleteData => {
-		const roomID = `/${deleteData.id}`;
+	socket.on("deleteLobby", ID => {
+		const roomID = `/${ID}`;
 		socket.to(roomID).emit("lobbyDeleted");
-		deleteLobby(deleteData.id, socket);
+		deleteLobby(ID, socket);
 	});
-	socket.on("DeckChoose", chooseData => {
-		const readyPlayers = ChangeDeckState(chooseData, socket.id);
-		if(readyPlayers.host) {
-			socket.to(`/${chooseData.id}`).emit("hostReadyUp", String(readyPlayers.ready));
+	socket.on("DeckChoose", deckData => {
+		const isHost = ChangeDeckState(deckData, socket.id);
+		if(isHost) {
+			socket.to(`/${deckData.id}`).emit("hostReadyUp", socket.id);
 		}
 	});
 	socket.on("PlayerReady", readyData => {
-		const readyObj = PlayerReady(socket.id, readyData); 
-		socket.to(`/${readyData.id}`).emit("readyUp", readyObj); 
-		socket.emit("readyUp", readyObj);
+		const returnData = PlayerReady(socket.id, readyData); 
+		socket.to(`/${readyData.id}`).emit("readyUp", returnData); 
+		socket.emit("readyUp", returnData);
 	});
 	socket.on("startGame", startData => {
 		const roomID = `/${startData.id}`;
