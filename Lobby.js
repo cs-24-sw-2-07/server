@@ -33,14 +33,13 @@ function CreateLobby(socket, displayName) {
  * @returns the id as a String
  */
 function CreateLobbyID() {
-    let numbers;
+    let id;
     do {
-        numbers = "";
+        id = "";
         for(let i=0; i<6; i++){
-            numbers += Math.floor(Math.random()*10); 
+            id += Math.floor(Math.random()*10); 
         }
-    } while (Rooms.get(numbers)); 
-    const id = String(numbers); 
+    } while (Rooms.get(`/${id}`));  
     return id; 
 }
 
@@ -84,12 +83,8 @@ function ChangeSettings(ChangeObj) {
  */
 function DeleteLobby(id, io){
     const pathID = `/${id}`;
-    if (Rooms.get(pathID)){
-        io.to(pathID).socketsLeave(pathID);
-        Rooms.delete(pathID);
-    } else{
-        console.error("Room doesn't exist");
-    }
+    io.to(pathID).socketsLeave(pathID);
+    Rooms.delete(pathID);
 }
 
 /**
@@ -139,8 +134,7 @@ function PlayerReady(socketID, id){
  */
 function JoinLobby(PlayerObj, roomID, socket){
     socket.join(roomID);
-    const Room = Rooms.get(roomID);
-    const Players = Room.players; 
+    const Players = Rooms.get(roomID).players; 
     const Player = CreatePlayer(PlayerObj.name, false, socket.id); 
     Players.set(socket.id, Player);
     
