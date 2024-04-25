@@ -225,25 +225,13 @@ function isSettingValid(SettingObj) {
     const setting = SettingObj.key;
     switch(setting) {
         case "deckSize": 
-            if(SettingObj[setting] >= 15 && SettingObj[setting] <= 50) {
-                return true; 
-            } 
-            return false; 
+            return SettingObj[setting] >= 15 && SettingObj[setting] <= 50;
         case "handSize":
-            if (SettingObj[setting] >= 5 && SettingObj[setting] <= 7) {
-                return true;
-            }
-            return false; 
+            return SettingObj[setting] >= 5 && SettingObj[setting] <= 7;
         case "life":
-            if (SettingObj[setting] >= 1 && SettingObj[setting] <= 5) {
-                return true;
-            }
-            return false; 
+            return SettingObj[setting] >= 1 && SettingObj[setting] <= 5;
         case "lobbySize":
-            if (SettingObj[setting] >= 2 && SettingObj[setting] <= 30) {
-                return true;
-            }
-            return false; 
+            return SettingObj[setting] >= 2 && SettingObj[setting] <= 30;
         default: 
             return false; 
     }
