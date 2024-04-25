@@ -1,38 +1,38 @@
 //import path from "path";
 import { Rooms } from "./index.js";
-export { CreateLobby, changeSettings, joinLobby, leaveLobby, deleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady };
+export { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady };
 import fs from "fs"; 
 
 //* =================================================== host lobby =============================================================== *\\
 /**
- * 
- * @param {*} socket 
- * @param {*} displayName 
- * @returns 
+ * Creates a lobby for the host that is stored in the Room map
+ * @param {*} socket An instance of the users socket
+ * @param {*} displayName The name that the user entered which will be their username in the lobby 
+ * @returns an object that is sent client-side to the update the lobby accordingly
  */
 function CreateLobby(socket, displayName) {
-    //TODO: When done reinstate this
-    //const id = CreateLobbyID(); 
-    const id = "12345";
-    const RoomID = `/${id}`;
-    socket.join(RoomID);
+    const id = CreateLobbyID(); 
+    const roomID = `/${id}`;
+    socket.join(roomID);
 
     // Sets up roomObj and pushes to room map 
     let settingsJson = JSON.parse(fs.readFileSync("./settings.json"));
-    let roomObj = roomStateObj(socket, displayName, settingsJson); 
-    Rooms.set(RoomID, roomObj);
+    let RoomObj = RoomStateObj(socket, displayName, settingsJson); 
+    Rooms.set(roomID, RoomObj);
     
-    const playerArr = mapToArrayObj(roomObj.players);
-    // Sends the default settings and ID to the host
-    const returnState = {
+    const playerArr = MapToArrayObj(RoomObj.players);
+    // Sends the default settings and id to the host
+    return {
         ...settingsJson, 
         id: id,
         players: playerArr
-    }
-    return returnState; 
+    };
 }
-
-/*function CreateLobbyID() {
+/**
+ * Creates a lobby-id consisting of 6 numbers
+ * @returns the id as a String
+ */
+function CreateLobbyID() {
     let numbers;
     do {
         numbers = "";
@@ -42,46 +42,50 @@ function CreateLobby(socket, displayName) {
     } while (Rooms.get(numbers)); 
     const id = String(numbers); 
     return id; 
-}*/
-
-/**
- * 
- * @param {*} socket 
- * @param {*} Roomid 
- * @param {*} name 
- * @param {*} settings 
- * @returns 
- */
-function roomStateObj(socket, name, settings){
-    // The lobby state is added to the rooms map as a value to the given room id 
-    let lobbyStateObj = { 
-        "players": new Map(),
-        "settings": settings
-    };
-    lobbyStateObj.players.set(socket.id, createPlayer(name, true, socket.id));
-    return lobbyStateObj; 
 }
 
 /**
- * 
- * @param {*} changeJson 
+ * Function for creating the room object that contains the settings and a map for all players
+ * @param {*} socket instance of the users socket
+ * @param {*} username the name given by the player
+ * @param {*} Settings object containing the settings 
+ * @returns the room object
+ */
+function RoomStateObj(socket, username, Settings){
+    // The lobby state is added to the rooms map as a value to the given room id 
+    let LobbyStateObj = { 
+        "players": new Map(),
+        "settings": Settings
+    };
+    LobbyStateObj.players.set(socket.id, CreatePlayer(username, true, socket.id));
+    return LobbyStateObj; 
+}
+
+/**
+ * Function that changes a setting in the Room State
+ * @param {*} ChangeObj object that contains the setting to be changed
+ * @returns boolean whether the setting was accepted or not
  */
 //change Settings 
-function changeSettings(changeJson) {
-    const setting = changeJson.key;
-    const Room = Rooms.get(`/${changeJson.id}`); 
-    Room.settings[setting] = changeJson[setting]; 
+function ChangeSettings(ChangeObj) {
+    if(!isSettingValid(ChangeObj)) {
+        return false; 
+    }
+    const setting = ChangeObj.key;
+    const Room = Rooms.get(`/${ChangeObj.id}`); 
+    Room.settings[setting] = ChangeObj[setting]; 
+    return true; 
 }
 
 /**
- * 
- * @param {*} id 
- * @param {*} io 
+ * Deletes a lobby if no id's are read
+ * @param {*} id Uses to read players id
+ * @param {*} io Allows for access to the overall socket connection
  */
-function deleteLobby(id, io){
+function DeleteLobby(id, io){
     const pathID = `/${id}`;
     if (Rooms.get(pathID)){
-        io.to(id).socketsLeave(id);
+        io.to(pathID).socketsLeave(pathID);
         Rooms.delete(pathID);
     } else{
         console.error("Room doesn't exist");
@@ -89,18 +93,18 @@ function deleteLobby(id, io){
 }
 
 /**
- * 
- * @param {*} roomID 
- * @returns 
+ * tjeks if there are 2 or more players in the room and tjeks if all players in the room are ready. 
+ * @param {*} roomID is the ID of the Room
+ * @returns true or false depending on weather the the conditions for the game to start is met 
  */
-// Start Game
+ 
 function ShouldStartGame(roomID){
     const players = Rooms.get(roomID).players; 
-    if (players.size < 2)
+    if (players.size < 2) {
         return false; 
-
+    }
     for (const player of players) {
-        if (player.ready === false || player.deck === null) {
+        if (player.ready === false) {
             return false;
         } 
     }
@@ -109,95 +113,98 @@ function ShouldStartGame(roomID){
 
 //* ============================================= joined lobby ============================================================== *\\
 /**
- * 
- * @param {*} socketID 
- * @param {*} lobbyStateObj 
- * @returns 
+ * Make it able for players to ready and unready if a deck has been chosen.
+ * @param {*} socketID is the ID for user
+ * @param {*} id is the id for the room
+ * @returns an object 
  */
-function PlayerReady(socketID, lobbyStateObj){
-    const pathID = `/${lobbyStateObj.id}`;
-    const Room = Rooms.get(pathID);
-    const playerData= Room.players.get(socketID);
 
-    playerData.ready = playerData.deck === null || playerData.ready  ? false : true;
+function PlayerReady(socketID, id){
+    const pathID = `/${id}`;
+    const Room = Rooms.get(pathID);
+    const Player= Room.players.get(socketID);
+
+    Player.ready = Player.deck === null || Player.ready ? false : true;
     return {
-        ready: playerData.ready,
+        ready: Player.ready,
         id: socketID
     }; 
 }
 
 /**
- * 
- * @param {*} playerJson 
- * @param {*} socket 
+ * Allows players to join lobby with ther username and id
+ * @param {*} playerArr Includes all players in the lobby
+ * @param {*} PlayerObj Holds the players username
+ * @param {*} socket Holds the players socket id.
  */
-function joinLobby(playerJson, roomID, socket){
+function JoinLobby(PlayerObj, roomID, socket){
     socket.join(roomID);
-
-    const players = Rooms.get(roomID).players; 
-    const player = createPlayer(playerJson.name, false, socket.id); 
-    players.set(socket.id, player);
+    const Room = Rooms.get(roomID);
+    const Players = Room.players; 
+    const Player = CreatePlayer(PlayerObj.name, false, socket.id); 
+    Players.set(socket.id, Player);
     
-    const playersArr = mapToArrayObj(players);
-
-    
-    const returnData = { //TODO: Add every needed element here
-        players: playersArr
-    }
-    return returnData; 
+    const playersArr = MapToArrayObj(Players);
+    return playersArr; 
 }
 
 /**
- * 
- * @param {*} playerJson 
- * @param {*} socket 
+ * Allows for users to leave a lobby
+ * @param {*} PlayerObj Gets the players name
+ * @param {*} socket Gets the socket id for the user
+ * @param {*} Room puts the players id into a map.
+ * @param {*} playersleftArr creates a new array with the updated map.
  */
-function leaveLobby(playerJson, socket){
-    const pathID = `/${playerJson.id}`; 
+function LeaveLobby(PlayerObj, socket){
+    const pathID = `/${PlayerObj.id}`; 
     const Room = Rooms.get(pathID);
-    const player = Room.players.get(socket.id);
-    //If the player had readied up then the ready counter should be counted down
-    if(player.ready)
-        Room.ready = Room.ready - 1; 
-
+    
     //Delete the player from the map
     Room.players.delete(socket.id);
     socket.leave(pathID);
+    const playersleftArr = MapToArrayObj(Room.players);
+    return playersleftArr;
 }
 
-//* ====================================================== Both ========================================================= *\\
+//* ====================================================== All users ========================================================= *\\
 /**
- * 
- * @param {*} deckObj 
- * @param {*} playerID 
- * @returns 
+ * Changes the deck for the given user in the room object
+ * @param {*} deckObj contains the deck and id for the room
+ * @param {*} playerID the socket id to recognize the user
+ * @returns a boolean for whether the user is a host or not
  */
-//Choose Decks
 function ChangeDeckState(deckObj, playerID) {
     const Room = Rooms.get(`/${deckObj.id}`);
+    if (deckObj.deck > Room.settings.deckSize) {
+        return false;
+    }
     const player = Room.players.get(playerID); 
     player.deck = deckObj.deck;
     if(player.host && !player.ready) {
         player.ready = true; 
     }
-    return player.host; 
+    return true; 
 }
 /**
- * 
- * @param {*} name 
- * @param {*} flag 
- * @returns 
+ * Function for creating a player object for the player map
+ * @param {*} username the username of the user
+ * @param {*} flag to set whether the user is host or not 
+ * @returns the object
  */
-function createPlayer(name, flag) {
+function CreatePlayer(username, flag) {
     return {
-        "name": name, 
+        "name": username, 
         "deck": null,
         "ready": false,
         "host": flag
     };
 } 
-
-function mapToArrayObj(map) {
+/**
+ * Takes a map and pushes it to an array object
+ * @param {*} map contains an object as the value
+ * @returns the created array
+ */
+function MapToArrayObj(map) {
     let array = [];
     for(const [key, value] of map.entries()) { 
         array.push({ 
@@ -208,6 +215,38 @@ function mapToArrayObj(map) {
         }); 
     }
     return array;
+}
+/**
+ * Function that checks whether the inputted setting is accepted
+ * @param {*} SettingObj the object containing the new setting
+ * @returns boolean is true if the setting is within the range and false if not
+ */
+function isSettingValid(SettingObj) {
+    const setting = SettingObj.key;
+    switch(setting) {
+        case "deckSize": 
+            if(SettingObj[setting] >= 15 && SettingObj[setting] <= 50) {
+                return true; 
+            } 
+            return false; 
+        case "handSize":
+            if (SettingObj[setting] >= 5 && SettingObj[setting] <= 7) {
+                return true;
+            }
+            return false; 
+        case "life":
+            if (SettingObj[setting] >= 1 && SettingObj[setting] <= 5) {
+                return true;
+            }
+            return false; 
+        case "lobbySize":
+            if (SettingObj[setting] >= 2 && SettingObj[setting] <= 30) {
+                return true;
+            }
+            return false; 
+        default: 
+            return false; 
+    }
 }
 
 export { Rooms }; 
