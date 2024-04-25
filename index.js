@@ -37,7 +37,7 @@ io.on("connection", socket => {
 		console.log(`a user with the id: ${socket.id} has disconnected`);
 	});
 
-	//* ================================================= Lobby Handler ======================================================== */
+	//* ================================================= Lobby Handler ======================================================== *\\
 	socket.on("createLobby", createData => {
 		console.log("Lobby was created");
 		const createLobbyObj = CreateLobby(socket, createData.name);
@@ -107,7 +107,7 @@ io.on("connection", socket => {
 		}
 	});
 
-	//* ========================================Battle Page Handler ======================================================= */
+	//* ========================================Battle Page Handler ======================================================= *\\
 
 });
 

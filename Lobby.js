@@ -3,8 +3,7 @@ import { Rooms } from "./index.js";
 export { CreateLobby, changeSettings, joinLobby, leaveLobby, deleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady };
 import fs from "fs"; 
 
-//* ========================================= host lobby =============================================================== *\\
-
+//* =================================================== host lobby =============================================================== *\\
 /**
  * 
  * @param {*} socket 
@@ -32,7 +31,6 @@ function CreateLobby(socket, displayName) {
     }
     return returnState; 
 }
-
 
 /*function CreateLobbyID() {
     let numbers;
@@ -64,8 +62,6 @@ function roomStateObj(socket, name, settings){
     return lobbyStateObj; 
 }
 
-
-
 /**
  * 
  * @param {*} changeJson 
@@ -76,7 +72,6 @@ function changeSettings(changeJson) {
     const Room = Rooms.get(`/${changeJson.id}`); 
     Room.settings[setting] = changeJson[setting]; 
 }
-
 
 /**
  * 
@@ -92,7 +87,6 @@ function deleteLobby(id, io){
         console.error("Room doesn't exist");
     }
 }
-
 
 /**
  * 
@@ -113,8 +107,7 @@ function ShouldStartGame(roomID){
     return true;
 }
 
-//* ========================================= joined lobby ============================================================== *\\
-
+//* ============================================= joined lobby ============================================================== *\\
 /**
  * 
  * @param {*} socketID 
@@ -173,7 +166,6 @@ function leaveLobby(playerJson, socket){
 }
 
 //* ====================================================== Both ========================================================= *\\
-
 /**
  * 
  * @param {*} deckObj 
