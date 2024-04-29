@@ -100,7 +100,7 @@ io.on("connection", socket => {
 		}
 	});
 
-	socket.on("test", (roomID) => {
+	/*socket.on("test", (roomID) => {
 		if(Rooms.get(roomID)) {
 			const Room = Rooms.get(roomID); 
 			console.log(`The room:\n${JSON.stringify(Room)}\n\n`); 
@@ -111,7 +111,7 @@ io.on("connection", socket => {
 		} else {
 			console.log("Room doesnt exist");
 		}
-	});
+	});*/
 
 	//* ========================================Battle Page Handler ======================================================= *\\
 
