@@ -40,6 +40,7 @@ io.on("connection", socket => {
 		const isPossible = ChangeSettings(UpdatedSettings);
 		if(isPossible) {
 			socket.to(`/${UpdatedSettings.id}`).emit("changeSetting", UpdatedSettings);
+			socket.emit("changeSetting", UpdatedSettings);
 		} else {
 			socket.emit("cantChangeSettings", UpdatedSettings);
 		}
@@ -73,12 +74,13 @@ io.on("connection", socket => {
 		DeleteLobby(id, socket);
 	});
 	socket.on("chooseDeck", (Deck) => {
-		const player = Rooms.get(`/${Deck.id}`).players.get(socket.id);
+		const players = Rooms.get(`/${Deck.id}`).players;
+		const player = players.get(socket.id);
 		const isPossible = ChangeDeckState(Deck, socket.id);
 		if(isPossible && player.host) {
-			socket.to(`/${Deck.id}`).emit("hostReadyUp", socket.id);
-		} else if (isPossible) {
-			socket.emit("deckAccepted");
+			//Emit to other players that the host has readied up
+			socket.to(`/${Deck.id}`).emit("readyUp", {"players": players});
+			socket.emit("readyUp", {"players": players}); 
 		} else {
 			socket.emit("deckNotAccepted");
 		}

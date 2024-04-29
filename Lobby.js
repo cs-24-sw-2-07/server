@@ -124,8 +124,7 @@ function PlayerReady(socketID, id){
 
     Player.ready = Player.deck !== null && !Player.ready;
     return {
-        ready: Player.ready,
-        id: socketID
+        players: Room.players   
     }; 
 }
 
