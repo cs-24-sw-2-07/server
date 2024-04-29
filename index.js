@@ -2,7 +2,7 @@
 import express from "express"
 import http from "http"
 import { Server } from "socket.io"
-import { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady } from "./Lobby.js" // TODO: Make this work
+import { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj } from "./Lobby.js" // TODO: Make this work
 //import { domainToASCII } from "url"
 const app = express()
 const server = http.createServer(app)
@@ -53,7 +53,7 @@ io.on("connection", socket => {
 		const Room = Rooms.get(roomID);
 		if(Room && Room.players.size < Room.settings.lobbySize) { 
 			const players = JoinLobby(Joined, roomID, socket);
-			socket.to(roomID).emit("playerJoined", {players: players});
+			socket.to(roomID).emit("playerHandler", players);
 			
 			//Adds the current settings to the Object for the joining player
 			const JoinedreturnData = { players: players , ...Room.settings };
@@ -68,34 +68,41 @@ io.on("connection", socket => {
 	});
 	socket.on("leaveLobby", () => {
 		const roomID = PlayerRooms.get(socket.id); 
-		const playersLeftArr = LeaveLobby(socket, roomID);
-		socket.to(roomID).emit("playerLeft", {players: playersLeftArr});
+		const players = LeaveLobby(socket, roomID);
+		socket.to(roomID).emit("playerHandler", players);
 	});
 	socket.on("deleteLobby", () => {
 		const roomID = PlayerRooms.get(socket.id);
 		socket.to(roomID).emit("lobbyDeleted");
 		DeleteLobby(roomID, socket);
 	});
-	socket.on("chooseDeck", (Deck) => {
+	socket.on("changeDeck", (Deck) => {
 		const roomID = PlayerRooms.get(socket.id);
-		const players = Rooms.get(roomID).players;
-		const player = players.get(socket.id);
-		const isPossible = ChangeDeckState(Deck, socket.id);
+		const Room = Rooms.get(roomID);
+		const player = Room.players.get(socket.id);
+
+		const isPossible = ChangeDeckState(Deck, socket.id, Room);
 		if(isPossible && player.host) {
 			//Emit to other players that the host has readied up
-			socket.to(roomID).emit("readyUp", {"players": players});
-			socket.emit("readyUp", {"players": players}); 
+			const playerArr = MapToArrayObj(Room.players);
+			socket.to(roomID).emit("playerHandler", playerArr);
+
+			socket.emit("playerHandler", playerArr);
+			socket.emit("changeDeck",  Deck.name);
+		} else if (isPossible){
+			socket.emit("changeDeck", Deck.name);
 		} else {
-			socket.emit("deckNotAccepted");
+			console.log("here"); 
+			socket.emit("deckNotAccepted"); 
 		}
 	});
 
 	//Listens for player ready and returns the players readyness status.
 	socket.on("playerReady", () => {
 		const roomID = PlayerRooms.get(socket.id);
-		const ReturnPlayerReady = PlayerReady(socket.id, roomID); 
-		socket.to(roomID).emit("readyUp", ReturnPlayerReady); 
-		socket.emit("readyUp", ReturnPlayerReady);
+		const playersArr = PlayerReady(socket.id, roomID); 
+		socket.to(roomID).emit("playerHandler", playersArr); 
+		socket.emit("playerHandler", playersArr);
 	});
 
 	//Listens for a 'startGame' event and either emits a 'startedGame' event to all clients in a room if conditions are met, or sends a 'cantStartGame' event to the initiating client if not.

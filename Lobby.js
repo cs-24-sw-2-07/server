@@ -1,6 +1,6 @@
 //import path from "path";
 import { Rooms, PlayerRooms } from "./index.js";
-export { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady };
+export { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj };
 
 //* =================================================== host lobby =============================================================== *\\
 /**
@@ -131,9 +131,7 @@ function PlayerReady(socketID, id){
     const Player= Room.players.get(socketID);
 
     Player.ready = Player.deck !== null && !Player.ready;
-    return {
-        players: Room.players   
-    }; 
+    return MapToArrayObj(Room.players); 
 }
 
 /**
@@ -178,17 +176,17 @@ function LeaveLobby(socket, roomID){
 //* ====================================================== All users ========================================================= *\\
 /**
  * Changes the deck for the given user in the room object
- * @param {*} deckObj contains the deck and id for the room
+ * @param {*} deck the object contains the deck
  * @param {*} playerID the socket id to recognize the user
+ * @param {*} roomID Id of the Room
  * @returns a boolean for whether the user is a host or not
  */
-function ChangeDeckState(deckObj, playerID) {
-    const Room = Rooms.get(`/${deckObj.id}`);
-    if (deckObj.deck > Room.settings.deckSize) {
+function ChangeDeckState(deck, playerID, Room) { //TODO: Check logic here
+    if (deck.cards.length > Room.settings.deckSize) {
         return false;
     }
     const player = Room.players.get(playerID); 
-    player.deck = deckObj.deck;
+    player.deck = deck.deck;
     if(player.host && !player.ready) {
         player.ready = true; 
     }
