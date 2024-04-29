@@ -117,13 +117,12 @@ function ShouldStartGame(roomID){
  * @param {*} id is the id for the room
  * @returns an object 
  */
-
 function PlayerReady(socketID, id){
     const pathID = `/${id}`;
     const Room = Rooms.get(pathID);
     const Player= Room.players.get(socketID);
 
-    Player.ready = Player.deck === null || Player.ready ? false : true;
+    Player.ready = Player.deck !== null && !Player.ready;
     return {
         ready: Player.ready,
         id: socketID
@@ -148,7 +147,7 @@ function JoinLobby(PlayerObj, roomID, socket){
 
 /**
  * Allows for users to leave a lobby
- * @param {*} PlayerObj Gets the players name
+ * @param {*} PlayerObj Object that contains the room's id
  * @param {*} socket Gets the socket id for the user
  * @param {*} Room puts the players id into a map.
  * @param {*} playersleftArr creates a new array with the updated map.
