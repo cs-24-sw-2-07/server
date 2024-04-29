@@ -21,9 +21,11 @@ const Rooms = new Map();
 // app.get('/', (req, res) => {
 //  res.sendFile(__dirname + '/index.html');
 // }); 
+// }); 
 
 // Handle socket connection
 io.on("connection", socket => {
+	console.log(`a user with the id: ${socket.id} has connected`);
 	socket.on("disconnect", () => { 
 		console.log(`a user with the id: ${socket.id} has disconnected`);
 	});
@@ -39,7 +41,7 @@ io.on("connection", socket => {
 		if(isPossible) {
 			socket.to(`/${UpdatedSettings.id}`).emit("changeSetting", UpdatedSettings);
 		} else {
-			socket.emit("cantChangeSettings");
+			socket.emit("cantChangeSettings", UpdatedSettings);
 		}
 	});
 	socket.on("joinLobby", (Joined) => {
@@ -47,7 +49,7 @@ io.on("connection", socket => {
 		const Room = Rooms.get(roomID);
 		if(Room && Room.players.size < Room.settings.lobbySize) { 
 			const players = JoinLobby(Joined, roomID, socket);
-			socket.to(roomID).emit("playerJoined", JSON.parse(players));
+			socket.to(roomID).emit("playerJoined", {players: players});
 			
 			//Adds the current settings to the Object for the joining player
 			const JoinedreturnData = { players: players , ...Room.settings };
