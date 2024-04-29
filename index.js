@@ -3,9 +3,11 @@ import express from "express"
 import http from "http"
 import { Server } from "socket.io"
 import { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady } from "./Lobby.js" // TODO: Make this work
+import { /*updateLives, drawCard,*/ drawHand } from "./Battle.js";
 //import { domainToASCII } from "url"
 const app = express()
 const server = http.createServer(app)
+
 
 // Socket server that makes use of the above http app server:
 const io = new Server(server, {
@@ -16,6 +18,64 @@ const io = new Server(server, {
 
 // This map contains all rooms and every room's states
 const Rooms = new Map();
+Rooms.set("/123456", {
+  settings: {
+    deckSize: 10,
+    handSize: 5,
+    life: 5,
+    lobbySize: 2
+  },
+  players: new Map(Object.entries({
+    1: {
+      name: "player1",
+      deck: {
+        "name": "Testing",
+        "id": "c197aab2-55ab-4724-9932-ff0d3638a5b7",
+        "cards": [
+          {"id": "6a658d2f-7cc7-439b-b031-efe228e57c4f", "answer": "test1", "question": "test1", "name": "test1"},
+          {"id": "5982685b-3a96-4e0e-829e-d358d484f88d", "answer": "test2", "question": "test2", "name": "test2"},
+          {"id": "088c44d2-165c-4161-ab81-ee23dd9c7224", "answer": "test3", "question": "test3", "name": "test3"},
+          {"id": "ed39caa2-e563-4a74-ac07-25f3eb442823", "answer": "test4", "question": "test4", "name": "test4asdsad"},
+          {"id": "c130187c-3951-4c1d-9549-69e26204f5f9", "answer": "test5", "question": "test5", "name": "test5"},
+          {"id": "00b32047-0a5c-48a2-b33f-28662e5f2f7e", "answer": "test6", "question": "test6", "name": "test6"},
+          {"id": "4f52105a-63ce-4c45-943d-b34acf11b651", "answer": "test7", "question": "test7", "name": "test7"},
+          {"id": "d43f609e-4299-4b2e-8fc0-0d0641219c2a", "answer": "test8", "question": "test8", "name": "test8"},
+          {"id": "ff745cf4-e004-4c47-869c-3ce75351dddd", "answer": "test9", "question": "test9", "name": "test9"},
+          {"id": "895134f9-0acb-4507-a2f6-28632c82bc62", "answer": "test10", "question": "test10", "name": "test10"}
+        ]
+      },
+      ready: true,
+      host: true,
+      lives: null,
+      hand: new Set(),
+      usedcards: new Set()
+    },
+    2: {
+      name: "player2",
+      deck: {
+        "name": "Testing",
+        "id": "c197aab2-55ab-4724-9932-ff0d3638a5b7",
+        "cards": [
+          {"id": "6a658d2f-7cc7-439b-b031-efe228e57c4f", "answer": "test1", "question": "test1", "name": "test1"},
+          {"id": "5982685b-3a96-4e0e-829e-d358d484f88d", "answer": "test2", "question": "test2", "name": "test2"},
+          {"id": "088c44d2-165c-4161-ab81-ee23dd9c7224", "answer": "test3", "question": "test3", "name": "test3"},
+          {"id": "ed39caa2-e563-4a74-ac07-25f3eb442823", "answer": "test4", "question": "test4", "name": "test4asdsad"},
+          {"id": "c130187c-3951-4c1d-9549-69e26204f5f9", "answer": "test5", "question": "test5", "name": "test5"},
+          {"id": "00b32047-0a5c-48a2-b33f-28662e5f2f7e", "answer": "test6", "question": "test6", "name": "test6"},
+          {"id": "4f52105a-63ce-4c45-943d-b34acf11b651", "answer": "test7", "question": "test7", "name": "test7"},
+          {"id": "d43f609e-4299-4b2e-8fc0-0d0641219c2a", "answer": "test8", "question": "test8", "name": "test8"},
+          {"id": "ff745cf4-e004-4c47-869c-3ce75351dddd", "answer": "test9", "question": "test9", "name": "test9"},
+          {"id": "895134f9-0acb-4507-a2f6-28632c82bc62", "answer": "test10", "question": "test10", "name": "test10"}
+        ]
+      },
+      ready: true,
+      host: false,
+      lives: null,
+      hand: new Set(),
+      usedcards: new Set()
+    }
+  })),
+});
 
 // Basic app routing
 // app.get('/', (req, res) => {
@@ -47,7 +107,8 @@ io.on("connection", socket => {
 		const Room = Rooms.get(roomID);
 		if(Room && Room.players.size < Room.settings.lobbySize) { 
 			const players = JoinLobby(Joined, roomID, socket);
-			socket.to(roomID).emit("playerJoined", JSON.parse(players));
+			
+			socket.to(roomID).emit("playerJoined", {players: players});
 			
 			//Adds the current settings to the Object for the joining player
 			const JoinedreturnData = { players: players , ...Room.settings };
@@ -93,8 +154,32 @@ io.on("connection", socket => {
 	socket.on("startGame", (StartGame) => {
 		const roomID = `/${StartGame.id}`;
 		if(ShouldStartGame(roomID)) {
+			const roomData = Rooms.get(roomID);
+			
 			socket.to(roomID).emit("startedGame");
 			socket.emit("startedGame");
+
+			//give each player lives according to settings
+			let lifeAmount = roomData.settings.life;
+			for(let [, player] of roomData.players.entries()){
+				player.lives = lifeAmount;
+			}
+			//Give each player a starting hand			
+			let hand = drawHand(roomData.settings.deckSize,roomData.settings.handSize);
+			console.log(hand);
+			for(let [, player] of roomData.players.entries()){
+				player.hand = hand;
+			}
+			//give players correct information
+			for(let [, player] of roomData.players.entries()){
+				if(player.host){
+					console.log("Sending to host ",player)
+					socket.emit("playerInfo", player);
+				}else{
+					console.log("Sending to nonehost ",player)
+					socket.to(roomID).emit("playerInfo", player);
+				}
+			}
 		} else {
 			socket.emit("cantStartGame");
 		}
@@ -114,7 +199,37 @@ io.on("connection", socket => {
 	});*/
 
 	//* ========================================Battle Page Handler ======================================================= *\\
+	
+	// Used for when a user picks a card to play
+	// It also draws a new card
+	/*socket.on("pickedCard",(cardID)=>{
+		const roomID = `/${cardID.id}`;
+		socket.to(roomID).emit(decks.socket.id.cards[cardID])
+	})
+	
+	// Used when a user is done answering a question
+	socket.on("doneAnswering",(data)=>{
+		const roomID = `/${data.id}`;
+		socket.to(roomID).emit(true);
+	})
 
+	socket.on("C/W", (value) => {
+		// True = Correct answer, False = Wrong answer
+		const roomID = `/${value.id}`;
+		if(value==true){
+			socket.to(roomID).emit("switchRoles");
+			socket.emit("switchRoles");
+		} else {
+			let livesData = updateLives(socket.id)
+			if(livesData == "winner"){
+				socket.to(roomID).emit("lose");
+				socket.emit("win");
+			}else{
+				socket.to(roomID).emit(livesData);
+				socket.emit(livesData);
+			}
+		}
+	})*/
 });
 
 export { Rooms };

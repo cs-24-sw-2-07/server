@@ -194,7 +194,10 @@ function CreatePlayer(username, flag) {
         "name": username, 
         "deck": null,
         "ready": false,
-        "host": flag
+        "host": flag,
+        "lives": null,
+        "hand": new Set(),
+        "usedCards": new Set()
     };
 } 
 /**
@@ -209,7 +212,7 @@ function MapToArrayObj(map) {
             name: value.name,
             ready: value.ready,
             host: value.host,
-            playerid: key
+            playerid: key,
         }); 
     }
     return array;
