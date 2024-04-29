@@ -4,6 +4,8 @@ import http from "http"
 import { Server } from "socket.io"
 import { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady } from "./Lobby.js" // TODO: Make this work
 //import { domainToASCII } from "url"
+import { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady } from "./Lobby.js" // TODO: Make this work
+//import { domainToASCII } from "url"
 const app = express()
 const server = http.createServer(app)
 
@@ -16,10 +18,18 @@ const io = new Server(server, {
 
 // This map contains all rooms and every room's states
 const Rooms = new Map();
+	cors: {
+		origin: "*"
+	}
+});
+
+// This map contains all rooms and every room's states
+const Rooms = new Map();
 
 // Basic app routing
 // app.get('/', (req, res) => {
 //  res.sendFile(__dirname + '/index.html');
+// }); 
 // }); 
 
 // Handle socket connection
@@ -121,6 +131,27 @@ io.on("connection", socket => {
 export { Rooms };
 // Start application server
 server.listen(3000, () => {
+	console.log("listening on *:3000");
+});
+
+/*
+	Events - client side: 
+	- lobbyCreated
+	- RoomNotExist
+	- changeSetting
+	- playerJoined
+	- playerLeft
+	- lobbyDeleted
+
+	Events - server side: 
+	- createLobby
+	- changeSettings
+	- joinLobby
+	- leaveLobby
+	- deleteLobby
+	- playerReady
+	- startGame
+*/
 	console.log("listening on *:3000");
 });
 
