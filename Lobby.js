@@ -1,7 +1,6 @@
 //import path from "path";
 import { Rooms } from "./index.js";
 export { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady };
-import fs from "fs"; 
 
 //* =================================================== host lobby =============================================================== *\\
 /**
@@ -16,7 +15,12 @@ function CreateLobby(socket, displayName) {
     socket.join(roomID);
 
     // Sets up roomObj and pushes to room map 
-    let settingsJson = JSON.parse(fs.readFileSync("./settings.json"));
+    const settingsJson = { 
+        "deckSize": 15, 
+        "handSize" : 5,
+        "life": 3,
+        "lobbySize": 2
+    };
     let RoomObj = RoomStateObj(socket, displayName, settingsJson); 
     Rooms.set(roomID, RoomObj);
     
@@ -210,6 +214,7 @@ function MapToArrayObj(map) {
     }
     return array;
 }
+
 /**
  * Function that checks whether the inputted setting is accepted
  * @param {*} SettingObj the object containing the new setting

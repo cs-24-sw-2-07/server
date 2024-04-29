@@ -24,10 +24,6 @@ const Rooms = new Map();
 
 // Handle socket connection
 io.on("connection", socket => {
-	console.log(`a user with the id: ${socket.id} has connected`); 
-	socket.on("buttonClick", (count) => {
-		console.log(socket.id, "has clicked the button", count, "times")
-	});
 	socket.on("disconnect", () => { 
 		console.log(`a user with the id: ${socket.id} has disconnected`);
 	});

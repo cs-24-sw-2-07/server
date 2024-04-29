@@ -1,0 +1,35 @@
+Only keys will be present here
+PlayerLeft event --> Data that needs to be sent
+leaveData = {
+		"id": "String", 
+		"name": "String"
+}
+
+createLobby event --> Data 
+data = {
+	"name": "String"
+}
+
+ChangeSettings event --> Data
+changeJson = {
+	id: String, 
+	key: string 
+	key[value]: string
+}
+
+changeJson = {
+	id: 12345, 
+	key: "lobbysize",
+	lobbysize: 5
+}
+
+joinData event --> Data 
+joinData = {
+	id: String, 
+	name: string
+}
+
+deleteLobby event --> Data
+deleteData = {
+	id: String, 
+}
