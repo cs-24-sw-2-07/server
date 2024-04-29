@@ -3,7 +3,7 @@ import express from "express"
 import http from "http"
 import { Server } from "socket.io"
 import { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady } from "./Lobby.js" // TODO: Make this work
-import { /*updateLives, drawCard,*/ drawHand } from "./Battle.js";
+import { updateLives, removeCardFromHand, drawHand } from "./Battle.js";
 //import { domainToASCII } from "url"
 const app = express()
 const server = http.createServer(app)
@@ -47,8 +47,8 @@ Rooms.set("/123456", {
       ready: true,
       host: true,
       lives: null,
-      hand: new Set(),
-      usedcards: new Set()
+      hand: [],
+      usedCards: []
     },
     2: {
       name: "player2",
@@ -71,8 +71,8 @@ Rooms.set("/123456", {
       ready: true,
       host: false,
       lives: null,
-      hand: new Set(),
-      usedcards: new Set()
+      hand: [],
+      usedCards: []
     }
   })),
 });
@@ -149,7 +149,10 @@ io.on("connection", socket => {
 		socket.to(`/${id}`).emit("readyUp", ReturnPlayerReady); 
 		socket.emit("readyUp", ReturnPlayerReady);
 	});
-
+	socket.on("testEvent", () => {
+		socket.join("/123456");
+		console.log("User joined ", socket.id);
+	})
 	//Listens for a 'startGame' event and either emits a 'startedGame' event to all clients in a room if conditions are met, or sends a 'cantStartGame' event to the initiating client if not.
 	socket.on("startGame", (StartGame) => {
 		const roomID = `/${StartGame.id}`;
@@ -161,22 +164,19 @@ io.on("connection", socket => {
 
 			//give each player lives according to settings
 			let lifeAmount = roomData.settings.life;
-			for(let [, player] of roomData.players.entries()){
-				player.lives = lifeAmount;
-			}
+			
 			//Give each player a starting hand			
 			let hand = drawHand(roomData.settings.deckSize,roomData.settings.handSize);
-			console.log(hand);
-			for(let [, player] of roomData.players.entries()){
-				player.hand = hand;
-			}
+		
 			//give players correct information
 			for(let [, player] of roomData.players.entries()){
+				player.lives = lifeAmount;
+				player.hand = [...hand];
 				if(player.host){
-					console.log("Sending to host ",player)
+					console.log("Sending to host")
 					socket.emit("playerInfo", player);
 				}else{
-					console.log("Sending to nonehost ",player)
+					console.log("Sending to nonehost")
 					socket.to(roomID).emit("playerInfo", player);
 				}
 			}
@@ -202,34 +202,36 @@ io.on("connection", socket => {
 	
 	// Used for when a user picks a card to play
 	// It also draws a new card
-	/*socket.on("pickedCard",(cardID)=>{
-		const roomID = `/${cardID.id}`;
-		socket.to(roomID).emit(decks.socket.id.cards[cardID])
+	socket.on("cardPicked",(data)=>{
+		const roomID = `/${data.id}`;
+		//TODO make a validation that the played card is vaulied compaired to the hand
+		let roomPlayers = Rooms.get(roomID).players
+		socket.to(roomID).emit("cardPicked", roomPlayers.get(data.playerID).deck.cards[data.cardID])
+		removeCardFromHand(data.playerID, data.cardID, roomID)
+		console.log(roomPlayers.get(data.playerID).hand)
 	})
 	
 	// Used when a user is done answering a question
 	socket.on("doneAnswering",(data)=>{
 		const roomID = `/${data.id}`;
-		socket.to(roomID).emit(true);
+		socket.to(roomID).emit("doneAnswering");
 	})
 
-	socket.on("C/W", (value) => {
-		// True = Correct answer, False = Wrong answer
-		const roomID = `/${value.id}`;
-		if(value==true){
-			socket.to(roomID).emit("switchRoles");
-			socket.emit("switchRoles");
-		} else {
-			let livesData = updateLives(socket.id)
+	socket.on("C/W", (data) => {
+		// data.value (True = Correct answer, False = Wrong answer)
+		const roomID = `/${data.id}`;
+		if(!data.value){
+			let livesData = updateLives(data.playerID, roomID)
 			if(livesData == "winner"){
-				socket.to(roomID).emit("lose");
-				socket.emit("win");
+				socket.to(roomID).emit("foundWinner","lose");
+				socket.emit("foundWinner", "win");
 			}else{
-				socket.to(roomID).emit(livesData);
-				socket.emit(livesData);
+				socket.to(roomID).emit("lifeUpdate",livesData);
 			}
 		}
-	})*/
+		socket.to(roomID).emit("switchRoles");
+		socket.emit("switchRoles");
+	})
 });
 
 export { Rooms };

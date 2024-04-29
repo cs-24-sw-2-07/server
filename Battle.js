@@ -1,20 +1,35 @@
 import { Rooms } from "./index.js";
-export { /*updateLives, drawCard, */drawHand };
+export { updateLives, drawHand, updateHand, removeCardFromHand };
 
 
-/*function updateLives(){
-    lives.playerID--;
-    if(lives.playerID == 0){
-        return "winner"
+function updateLives(playerID, roomID){   
+    const roomData = Rooms.get(roomID);
+    for(let [, player] of roomData.players.entries()){
+        if(roomData.players.has(playerID)){
+            player.lives--;
+            if(player.lives == 0){
+                return "winner"
+            }
+            return player.lives
+        }
     }
-    return lives.playerID
 }
 
+function updateHand(){
+    //check if there are more cards left in the deck
+}
+
+function removeCardFromHand(playerID, usedIndex,roomID){
+    let roomPlayers = Rooms.get(roomID).players;
+    let updatedHand = [...roomPlayers.get(playerID).hand];
+    roomPlayers.get(playerID).usedCards.push(updatedHand[usedIndex]);
+    updatedHand.splice(usedIndex,1);
+    roomPlayers.get(playerID).hand = [...updatedHand]
+}
+
+/*
 //draw a new card
 function drawCard(playerID, usedIndex, hand, usedCards){
-    usedCards.add(hand[usedIndex]);
-    hand.splice(usedIndex,1)
-
     //if there is more cards in the deck => draw new card
     if(decks.playerID.cards.length >= usedCards.length + hand.size){
         let pickedCard = -1;
