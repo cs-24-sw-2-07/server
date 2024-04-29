@@ -3,7 +3,7 @@ import express from "express"
 import http from "http"
 import { Server } from "socket.io"
 import { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady } from "./Lobby.js" // TODO: Make this work
-import { updateLives, removeCardFromHand, drawHand } from "./Battle.js";
+import { updateLives, removeCardFromHand, drawHand, updateHand } from "./Battle.js";
 //import { domainToASCII } from "url"
 const app = express()
 const server = http.createServer(app)
@@ -19,6 +19,7 @@ const io = new Server(server, {
 // This map contains all rooms and every room's states
 const Rooms = new Map();
 Rooms.set("/123456", {
+  outOfCardsNotify:false,
   settings: {
     deckSize: 10,
     handSize: 5,
@@ -228,6 +229,18 @@ io.on("connection", socket => {
 			}else{
 				socket.to(roomID).emit("lifeUpdate",livesData);
 			}
+		}
+		//check if there is more cards left and update hand
+		let updateHandVaule = updateHand(data.playerID, roomID);
+		if(updateHandVaule == "winner"){
+			socket.to(roomID).emit("foundWinner","lose");
+			socket.emit("foundWinner", "win");
+		} else if (updateHandVaule == "lost"){
+			socket.to(roomID).emit("foundWinner","win");
+			socket.emit("foundWinner", "lose");
+		} else if (updateHandVaule == "draw"){
+			socket.to(roomID).emit("foundWinner","draw");
+			socket.emit("foundWinner", "draw");
 		}
 		socket.to(roomID).emit("switchRoles");
 		socket.emit("switchRoles");

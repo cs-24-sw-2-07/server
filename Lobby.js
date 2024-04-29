@@ -58,7 +58,8 @@ function RoomStateObj(socket, username, Settings){
     // The lobby state is added to the rooms map as a value to the given room id 
     let LobbyStateObj = { 
         "players": new Map(),
-        "settings": Settings
+        "settings": Settings,
+        "outOfCardsNotify": false
     };
     LobbyStateObj.players.set(socket.id, CreatePlayer(username, true, socket.id));
     return LobbyStateObj; 

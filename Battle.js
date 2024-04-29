@@ -1,5 +1,5 @@
 import { Rooms } from "./index.js";
-export { updateLives, drawHand, updateHand, removeCardFromHand };
+export { updateLives, drawHand, updateHand, removeCardFromHand, drawCard };
 
 
 function updateLives(playerID, roomID){   
@@ -15,8 +15,40 @@ function updateLives(playerID, roomID){
     }
 }
 
-function updateHand(){
-    //check if there are more cards left in the deck
+function updateHand(playerID, roomID){
+    let player = Rooms.get(roomID).players.get(playerID);
+    
+    //if the player's hand is empty and have recieved notification from the other player => find winner
+    if(player.hand.size === 0 && Rooms.get(roomID).outOfCardsNotify){
+        let oppPlayer = Rooms.get(roomID).players.filter((player) => {player != playerID})
+        console.log(oppPlayer)
+        if(oppPlayer.lives < player.lives){
+            return "winner"
+        } else if(oppPlayer.lives > player.lives){
+            return "lost"
+        } else {
+            return "draw"
+        }
+    } else if(player.hand.size === 0){
+        Rooms.get(roomID).outOfCardsNotify=true;
+        console.log(Rooms.get(roomID).outOfCardsNotify)
+    }
+
+    //if there are more cards left in the deck => draw new card
+    if(player.deck.cards.length >= player.usedCards.length + player.hand.size){
+        let pickedCard = drawCard(player.usedCards, player.deck.cards.length);
+        player.hand.push(pickedCard);
+    }
+}
+
+//draw a new card
+function drawCard(usedCards, deckSize){
+    let pickedCard = -1;
+    do{
+        pickedCard = Math.floor(Math.random()*deckSize);
+    }while(!usedCards.includes(pickedCard))
+
+    return pickedCard;
 }
 
 function removeCardFromHand(playerID, usedIndex,roomID){
@@ -27,19 +59,8 @@ function removeCardFromHand(playerID, usedIndex,roomID){
     roomPlayers.get(playerID).hand = [...updatedHand]
 }
 
-/*
-//draw a new card
-function drawCard(playerID, usedIndex, hand, usedCards){
-    //if there is more cards in the deck => draw new card
-    if(decks.playerID.cards.length >= usedCards.length + hand.size){
-        let pickedCard = -1;
-        do{
-            pickedCard = Math.floor(Math.random()*decks.playerID.cards.length);
-        }while(!usedCards.has(pickedCard))
-        hand.add(pickedCard)
-    }
-    return hand;
-}*/
+
+
 
 //make a starting hand
 function drawHand(deckSize, handSize){
