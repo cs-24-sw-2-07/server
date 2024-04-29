@@ -181,8 +181,8 @@ function LeaveLobby(socket, roomID){
  * @param {*} roomID Id of the Room
  * @returns a boolean for whether the user is a host or not
  */
-function ChangeDeckState(deck, playerID, Room) { //TODO: Check logic here
-    if (deck.cards.length > Room.settings.deckSize) {
+function ChangeDeckState(deck, playerID, Room) {
+    if (deck.cards.length < Room.settings.deckSize) {
         return false;
     }
     const player = Room.players.get(playerID); 
