@@ -16,6 +16,8 @@ const io = new Server(server, {
 
 // This map contains all rooms and every room's states
 const Rooms = new Map();
+//This map contains all socket id's as keys and has the correlating Rooms key as the value
+const PlayerRooms = new Map();
 
 // Basic app routing
 // app.get('/', (req, res) => {
@@ -37,9 +39,10 @@ io.on("connection", socket => {
 		socket.emit("lobby", CreateLobbyObj);
 	});
 	socket.on("changeSettings", (UpdatedSettings) => {
-		const isPossible = ChangeSettings(UpdatedSettings);
+		const roomID = PlayerRooms.get(socket.id); 
+		const isPossible = ChangeSettings(UpdatedSettings, roomID);
 		if(isPossible) {
-			socket.to(`/${UpdatedSettings.id}`).emit("changeSetting", UpdatedSettings);
+			socket.to(roomID).emit("changeSetting", UpdatedSettings);
 			socket.emit("changeSetting", UpdatedSettings);
 		} else {
 			socket.emit("cantChangeSettings", UpdatedSettings);
@@ -63,23 +66,24 @@ io.on("connection", socket => {
 			socket.emit("roomNotExist");
 		}
 	});
-	socket.on("leaveLobby", (PlayerLeft) => {
-		const roomID = `/${PlayerLeft.id}`; 
-		const playersLeftArr = LeaveLobby(PlayerLeft, socket);
+	socket.on("leaveLobby", () => {
+		const roomID = PlayerRooms.get(socket.id); 
+		const playersLeftArr = LeaveLobby(socket, roomID);
 		socket.to(roomID).emit("playerLeft", {players: playersLeftArr});
 	});
-	socket.on("deleteLobby", (id) => {
-		const roomID = `/${id}`;
+	socket.on("deleteLobby", () => {
+		const roomID = PlayerRooms.get(socket.id);
 		socket.to(roomID).emit("lobbyDeleted");
-		DeleteLobby(id, socket);
+		DeleteLobby(roomID, socket);
 	});
 	socket.on("chooseDeck", (Deck) => {
-		const players = Rooms.get(`/${Deck.id}`).players;
+		const roomID = PlayerRooms.get(socket.id);
+		const players = Rooms.get(roomID).players;
 		const player = players.get(socket.id);
 		const isPossible = ChangeDeckState(Deck, socket.id);
 		if(isPossible && player.host) {
 			//Emit to other players that the host has readied up
-			socket.to(`/${Deck.id}`).emit("readyUp", {"players": players});
+			socket.to(roomID).emit("readyUp", {"players": players});
 			socket.emit("readyUp", {"players": players}); 
 		} else {
 			socket.emit("deckNotAccepted");
@@ -87,15 +91,16 @@ io.on("connection", socket => {
 	});
 
 	//Listens for player ready and returns the players readyness status.
-	socket.on("playerReady", (id) => {
-		const ReturnPlayerReady = PlayerReady(socket.id, id); 
-		socket.to(`/${id}`).emit("readyUp", ReturnPlayerReady); 
+	socket.on("playerReady", () => {
+		const roomID = PlayerRooms.get(socket.id);
+		const ReturnPlayerReady = PlayerReady(socket.id, roomID); 
+		socket.to(roomID).emit("readyUp", ReturnPlayerReady); 
 		socket.emit("readyUp", ReturnPlayerReady);
 	});
 
 	//Listens for a 'startGame' event and either emits a 'startedGame' event to all clients in a room if conditions are met, or sends a 'cantStartGame' event to the initiating client if not.
-	socket.on("startGame", (StartGame) => {
-		const roomID = `/${StartGame.id}`;
+	socket.on("startGame", () => {
+		const roomID = PlayerRooms.get(socket.id);
 		if(ShouldStartGame(roomID)) {
 			socket.to(roomID).emit("startedGame");
 			socket.emit("startedGame");
@@ -104,7 +109,8 @@ io.on("connection", socket => {
 		}
 	});
 
-	/*socket.on("test", (roomID) => {
+	socket.on("test", () => {
+		const roomID = PlayerRooms.get(socket.id);
 		if(Rooms.get(roomID)) {
 			const Room = Rooms.get(roomID); 
 			console.log(`The room:\n${JSON.stringify(Room)}\n\n`); 
@@ -115,13 +121,22 @@ io.on("connection", socket => {
 		} else {
 			console.log("Room doesnt exist");
 		}
-	});*/
+	});
+
+	socket.on("testPlayerMap", () => {
+		for(const [id, entry] of PlayerRooms.entries()) {
+			console.log(`\nKey: ${id}, Value: ${entry}`);
+		}
+		if(PlayerRooms.size === 0 ) {
+			console.log("\nMap is empty");
+		}
+	})
 
 	//* ========================================Battle Page Handler ======================================================= *\\
 
 });
 
-export { Rooms };
+export { Rooms, PlayerRooms };
 // Start application server
 server.listen(3000, () => {
 	console.log("listening on *:3000");
