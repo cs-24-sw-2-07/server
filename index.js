@@ -30,6 +30,17 @@ io.on("connection", socket => {
 	console.log(`a user with the id: ${socket.id} has connected`);
 	socket.on("disconnect", () => { 
 		console.log(`a user with the id: ${socket.id} has disconnected`);
+		if(PlayerRooms.has(socket.id)) {
+			if(Rooms.get(PlayerRooms.get(socket.id)).players.get(socket.id).host) { //Does player have host status? 
+				const roomID = PlayerRooms.get(socket.id);
+				socket.to(roomID).emit("lobbyDeleted");
+				DeleteLobby(roomID, socket);
+			} else {
+				const roomID = PlayerRooms.get(socket.id); 
+				const players = LeaveLobby(socket, roomID);
+				socket.to(roomID).emit("playerHandler", players);
+			}
+		}
 	});
 
 	//* ================================================= Lobby Handler ======================================================== *\\
@@ -52,11 +63,11 @@ io.on("connection", socket => {
 		const roomID = `/${Joined.id}`;
 		const Room = Rooms.get(roomID);
 		if(Room && Room.players.size < Room.settings.lobbySize) { 
-			const players = JoinLobby(Joined, roomID, socket);
-			socket.to(roomID).emit("playerHandler", players);
+			const playersArr = JoinLobby(Joined, roomID, socket);
+			socket.to(roomID).emit("playerHandler", playersArr);
 			
 			//Adds the current settings to the Object for the joining player
-			const JoinedreturnData = { players: players , ...Room.settings };
+			const JoinedreturnData = {...Room.settings, id: Joined.id, players: playersArr};
 			socket.emit("lobby", JoinedreturnData);
 			
 			console.log(Joined.name, "has joined the lobby with id:", roomID);

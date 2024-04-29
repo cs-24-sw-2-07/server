@@ -144,13 +144,12 @@ function JoinLobby(PlayerObj, roomID, socket){
     socket.join(roomID);
     
     const Players = Rooms.get(roomID).players; 
-    const Player = CreatePlayer(PlayerObj.name, false, socket.id); 
+    const Player = CreatePlayer(PlayerObj.name, false); 
 
     PlayerRooms.set(socket.id, roomID);
     Players.set(socket.id, Player);
     
-    const playersArr = MapToArrayObj(Players);
-    return playersArr; 
+    return MapToArrayObj(Players); 
 }
 
 /**
