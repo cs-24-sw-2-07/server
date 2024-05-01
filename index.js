@@ -103,7 +103,6 @@ io.on("connection", socket => {
 		} else if (isPossible){
 			socket.emit("changeDeck", Deck.name);
 		} else {
-			console.log("here"); 
 			socket.emit("deckNotAccepted"); 
 		}
 	});
