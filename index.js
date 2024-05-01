@@ -2,7 +2,7 @@
 import express from "express"
 import http from "http"
 import { Server } from "socket.io"
-import { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj } from "./Lobby.js" // TODO: Make this work
+import { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj } from "./Lobby.js"
 //import { domainToASCII } from "url"
 const app = express()
 const server = http.createServer(app)
@@ -58,7 +58,6 @@ io.on("connection", socket => {
 			socket.emit("changeSetting", UpdatedSettings);
 		} else {
 			socket.emit("cantChangeSettings", UpdatedSettings);
-
 		}
 	});
 	socket.on("joinLobby", (Joined) => {
@@ -71,7 +70,6 @@ io.on("connection", socket => {
 			//Adds the current settings to the Object for the joining player
 			const JoinedreturnData = {...Room.settings, id: Joined.id, players: playersArr};
 			socket.emit("lobby", JoinedreturnData);
-			
 			console.log(Joined.name, "has joined the lobby with id:", roomID);
 		} else if (Room) {
 			socket.emit("RoomFull");
@@ -88,21 +86,20 @@ io.on("connection", socket => {
 		const roomID = PlayerRooms.get(socket.id);
 		socket.to(roomID).emit("lobbyDeleted");
 		DeleteLobby(roomID, socket);
+		DeleteLobby(roomID, socket);
 	});
 	socket.on("changeDeck", (Deck) => {
 		const roomID = PlayerRooms.get(socket.id);
 		const Room = Rooms.get(roomID);
-		const player = Room.players.get(socket.id);
 
 		const isPossible = ChangeDeckState(Deck, socket.id, Room);
-		if(isPossible && player.host) {
+		
+		if(isPossible) {
 			//Emit to other players that the host has readied up
 			const playerArr = MapToArrayObj(Room.players);
 			socket.to(roomID).emit("playerHandler", playerArr);
-
 			socket.emit("playerHandler", playerArr);
-			socket.emit("changeDeck",  Deck.name);
-		} else if (isPossible){
+			
 			socket.emit("changeDeck", Deck.name);
 		} else {
 			socket.emit("deckNotAccepted"); 
@@ -127,7 +124,7 @@ io.on("connection", socket => {
 			socket.emit("cantStartGame");
 		}
 	});
-
+});
 	/*socket.on("test", () => {
 		const roomID = PlayerRooms.get(socket.id);
 		if(Rooms.get(roomID)) {
@@ -152,8 +149,6 @@ io.on("connection", socket => {
 	})*/
 
 	//* ========================================Battle Page Handler ======================================================= *\\
-
-});
 
 export { Rooms, PlayerRooms };
 // Start application server

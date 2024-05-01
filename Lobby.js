@@ -122,12 +122,11 @@ function ShouldStartGame(roomID){
 /**
  * Make it able for players to ready and unready if a deck has been chosen.
  * @param {*} socketID is the ID for user
- * @param {*} id is the id for the room
+ * @param {*} roomID is the id for the room
  * @returns an object 
  */
-function PlayerReady(socketID, id){
-    const pathID = `/${id}`;
-    const Room = Rooms.get(pathID);
+function PlayerReady(socketID, roomID){
+    const Room = Rooms.get(roomID);
     const Player= Room.players.get(socketID);
 
     Player.ready = Player.deck !== null && !Player.ready;
