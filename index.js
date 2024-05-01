@@ -84,9 +84,9 @@ io.on("connection", socket => {
 	});
 	socket.on("deleteLobby", () => {
 		const roomID = PlayerRooms.get(socket.id);
-		socket.to(roomID).emit("leaveLobby");
-		socket.emit("leaveLobby");
-		DeleteLobby(id, io);
+        socket.to(roomID).emit("leaveLobby");
+        socket.emit("leaveLobby");
+        DeleteLobby(roomID, io);
 	});
 	socket.on("changeDeck", (Deck) => {
 		const roomID = PlayerRooms.get(socket.id);
