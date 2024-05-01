@@ -140,14 +140,14 @@ io.on("connection", socket => {
 		}
 	});
 
-	socket.on("testPlayerMap", () => {
+	/*socket.on("testPlayerMap", () => {
 		for(const [id, entry] of PlayerRooms.entries()) {
 			console.log(`\nKey: ${id}, Value: ${entry}`);
 		}
 		if(PlayerRooms.size === 0 ) {
 			console.log("\nMap is empty");
 		}
-	})
+	})*/
 
 	//* ========================================Battle Page Handler ======================================================= *\\
 
