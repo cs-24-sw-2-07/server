@@ -19,7 +19,7 @@ function CreateLobby(socket, displayName) {
 
     // Sets up roomObj and pushes to room map 
     const settingsJson = { 
-        "deckSize": 15, 
+        "deckSize": 15,  
         "handSize" : 5,
         "life": 3,
         "lobbySize": 2
@@ -61,7 +61,8 @@ function RoomStateObj(socket, username, Settings){
     // The lobby state is added to the rooms map as a value to the given room id 
     let LobbyStateObj = { 
         "players": new Map(),
-        "settings": Settings
+        "settings": Settings,
+        "outOfCardsNotify": false
     };
     LobbyStateObj.players.set(socket.id, CreatePlayer(username, true, socket.id));
     return LobbyStateObj; 
@@ -180,7 +181,7 @@ function ChangeDeckState(deck, playerID, Room) {
         return false;
     }
     const player = Room.players.get(playerID); 
-    player.deck = deck.deck;
+    player.deck = deck;
     if(player.host && !player.ready) {
         player.ready = true; 
     }
@@ -197,7 +198,10 @@ function CreatePlayer(username, flag) {
         "name": username, 
         "deck": null,
         "ready": false,
-        "host": flag
+        "host": flag,
+        "lives": null,
+        "hand": [],
+        "usedCards": []
     };
 } 
 /**
@@ -212,7 +216,7 @@ function MapToArrayObj(map) {
             name: value.name,
             ready: value.ready,
             host: value.host,
-            playerid: key
+            playerid: key,
         }); 
     }
     return array;
