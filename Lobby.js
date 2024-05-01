@@ -19,8 +19,8 @@ function CreateLobby(socket, displayName) {
 
     // Sets up roomObj and pushes to room map 
     const settingsJson = { 
-        "deckSize": 3,  //! TODO fix så der står 15 igen
-        "handSize" : 2, //! TODO cahnge back to 5
+        "deckSize": 15,  
+        "handSize" : 5,
         "life": 3,
         "lobbySize": 2
     };

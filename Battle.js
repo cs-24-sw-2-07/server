@@ -22,7 +22,7 @@ function removeCardFromHand(playerID, usedIndex,roomID){
 function updateLives(playerID, roomID){   
     const roomData = Rooms.get(roomID);
     let oppPlayer;
-    //Finds player that did not send socket event
+    //Find player that did not send socket event
     for (const key of Rooms.get(roomID).players.keys()) {
         if (playerID !== key) {
             oppPlayer = key;
