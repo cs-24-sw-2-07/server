@@ -1,6 +1,6 @@
 //import path from "path";
-import { Rooms } from "./index.js";
-export { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady };
+import { Rooms, PlayerRooms } from "./index.js";
+export { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj };
 
 //* =================================================== host lobby =============================================================== *\\
 /**
@@ -13,6 +13,9 @@ function CreateLobby(socket, displayName) {
     const id = CreateLobbyID(); 
     const roomID = `/${id}`;
     socket.join(roomID);
+    
+    //Sets the socket's id to be assigned to the room id when events are called
+    PlayerRooms.set(socket.id, roomID); 
 
     // Sets up roomObj and pushes to room map 
     const settingsJson = { 
@@ -70,25 +73,30 @@ function RoomStateObj(socket, username, Settings){
  * @returns boolean whether the setting was accepted or not
  */
 //change Settings 
-function ChangeSettings(ChangeObj) {
+function ChangeSettings(ChangeObj, roomID) {
     if(!isSettingValid(ChangeObj)) {
         return false; 
     }
     const setting = ChangeObj.key;
-    const Room = Rooms.get(`/${ChangeObj.id}`); 
+    const Room = Rooms.get(roomID); 
     Room.settings[setting] = ChangeObj[setting]; 
     return true; 
 }
 
 /**
  * Deletes a lobby if no id's are read
- * @param {*} id Uses to read players id
+ * @param {*} roomID Uses to read players id
  * @param {*} io Allows for access to the overall socket connection
  */
-function DeleteLobby(id, io){
-    const pathID = `/${id}`;
-    io.to(pathID).socketsLeave(pathID);
-    Rooms.delete(pathID);
+function DeleteLobby(roomID, io){
+    //Deletes the key-value pairs from the PlayerRooms map
+    const players = Rooms.get(roomID).players
+    for(const [id,] of players.entries()) {
+        PlayerRooms.delete(id); 
+    }
+
+    io.to(roomID).socketsLeave(roomID);
+    Rooms.delete(roomID);
 }
 
 /**
@@ -123,10 +131,7 @@ function PlayerReady(socketID, id){
     const Player= Room.players.get(socketID);
 
     Player.ready = Player.deck !== null && !Player.ready;
-    return {
-        ready: Player.ready,
-        id: socketID
-    }; 
+    return MapToArrayObj(Room.players); 
 }
 
 /**
@@ -137,28 +142,33 @@ function PlayerReady(socketID, id){
  */
 function JoinLobby(PlayerObj, roomID, socket){
     socket.join(roomID);
+    
     const Players = Rooms.get(roomID).players; 
-    const Player = CreatePlayer(PlayerObj.name, false, socket.id); 
+    const Player = CreatePlayer(PlayerObj.name, false); 
+
+    PlayerRooms.set(socket.id, roomID);
     Players.set(socket.id, Player);
     
-    const playersArr = MapToArrayObj(Players);
-    return playersArr; 
+    return MapToArrayObj(Players); 
 }
 
 /**
  * Allows for users to leave a lobby
  * @param {*} PlayerObj Object that contains the room's id
+ * @param {*} PlayerObj Object that contains the room's id
  * @param {*} socket Gets the socket id for the user
  * @param {*} Room puts the players id into a map.
  * @param {*} playersleftArr creates a new array with the updated map.
  */
-function LeaveLobby(PlayerObj, socket){
-    const pathID = `/${PlayerObj.id}`; 
-    const Room = Rooms.get(pathID);
-    
-    //Delete the player from the map
+function LeaveLobby(socket, roomID){ 
+    //Delete the player from the PlayerRoom map
+    PlayerRooms.delete(socket.id);
+
+    //Delete the player from the Rooms map
+    const Room = Rooms.get(roomID);
     Room.players.delete(socket.id);
-    socket.leave(pathID);
+    socket.leave(roomID);
+
     const playersleftArr = MapToArrayObj(Room.players);
     return playersleftArr;
 }
@@ -166,17 +176,17 @@ function LeaveLobby(PlayerObj, socket){
 //* ====================================================== All users ========================================================= *\\
 /**
  * Changes the deck for the given user in the room object
- * @param {*} deckObj contains the deck and id for the room
+ * @param {*} deck the object contains the deck
  * @param {*} playerID the socket id to recognize the user
+ * @param {*} roomID Id of the Room
  * @returns a boolean for whether the user is a host or not
  */
-function ChangeDeckState(deckObj, playerID) {
-    const Room = Rooms.get(`/${deckObj.id}`);
-    if (deckObj.deck > Room.settings.deckSize) {
+function ChangeDeckState(deck, playerID, Room) {
+    if (deck.cards.length < Room.settings.deckSize) {
         return false;
     }
     const player = Room.players.get(playerID); 
-    player.deck = deckObj.deck;
+    player.deck = deck.deck;
     if(player.host && !player.ready) {
         player.ready = true; 
     }
