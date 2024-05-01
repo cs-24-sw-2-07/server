@@ -19,8 +19,8 @@ function CreateLobby(socket, displayName) {
 
     // Sets up roomObj and pushes to room map 
     const settingsJson = { 
-        "deckSize": 15, 
-        "handSize" : 5,
+        "deckSize": 3,  //! TODO fix så der står 15 igen
+        "handSize" : 2, //! TODO cahnge back to 5
         "life": 3,
         "lobbySize": 2
     };
@@ -186,7 +186,7 @@ function ChangeDeckState(deck, playerID, Room) {
         return false;
     }
     const player = Room.players.get(playerID); 
-    player.deck = deck.deck;
+    player.deck = deck;
     if(player.host && !player.ready) {
         player.ready = true; 
     }
@@ -205,8 +205,8 @@ function CreatePlayer(username, flag) {
         "ready": false,
         "host": flag,
         "lives": null,
-        "hand": new Set(),
-        "usedCards": new Set()
+        "hand": [],
+        "usedCards": []
     };
 } 
 /**

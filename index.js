@@ -153,15 +153,19 @@ io.on("connection", socket => {
 			socket.emit("playerHandler", playerArr);
 			
 			socket.emit("changeDeck", Deck.name);
+			console.log("Deck accepted") //! Console log
 		} else {
+			console.log("Deck not accepted") //! Console log
 			socket.emit("deckNotAccepted"); 
 		}
 	});
 
 	//Listens for player ready and returns the players readyness status.
-	socket.on("playerReady", (id) => {
-		const ReturnPlayerReady = PlayerReady(socket.id, id); 
-		socket.to(`/${id}`).emit("readyUp", ReturnPlayerReady); 
+	socket.on("playerReady", () => {
+		const roomID = PlayerRooms.get(socket.id);
+		const ReturnPlayerReady = PlayerReady(socket.id, roomID); 
+		console.log("player was ready") //! Console log
+		socket.to(roomID).emit("readyUp", ReturnPlayerReady); 
 		socket.emit("readyUp", ReturnPlayerReady);
 	});
 	socket.on("testEvent", () => {
@@ -177,6 +181,7 @@ io.on("connection", socket => {
 			
 			socket.to(roomID).emit("startedGame");
 			socket.emit("startedGame");
+			console.log("Started game")
 
 			//give each player lives according to settings
 			let lifeAmount = roomData.settings.life;
@@ -192,7 +197,7 @@ io.on("connection", socket => {
 					console.log("Sending to host")
 					socket.emit("playerInfo", player);
 				}else{
-					console.log("Sending to nonehost")
+					console.log("Sending to non-host")
 					socket.to(roomID).emit("playerInfo", player);
 				}
 			}
@@ -200,7 +205,7 @@ io.on("connection", socket => {
 			socket.emit("cantStartGame");
 		}
 	});
-});
+
 	/*socket.on("test", () => {
 		const roomID = PlayerRooms.get(socket.id);
 		if(Rooms.get(roomID)) {
@@ -229,26 +234,25 @@ io.on("connection", socket => {
 	// Used for when a user picks a card to play
 	// It also draws a new card
 	socket.on("cardPicked",(data)=>{
-		const roomID = `/${data.id}`;
+		const roomID = PlayerRooms.get(socket.id);
 		let roomPlayers = Rooms.get(roomID).players
-		const player = roomPlayers.get(data.playerID)
+		const player = roomPlayers.get(socket.id)
 		//TODO make a validation that the played card is vaulied compaired to the hand
 		socket.to(roomID).emit("cardPicked", player.deck.cards[player.hand[data.cardID]])
-		console.log(roomPlayers.get(data.playerID).hand, " ", player.deck.cards[player.hand[data.cardID]])
-		removeCardFromHand(data.playerID, data.cardID, roomID)
-	})
+		removeCardFromHand(socket.id, data.cardID, roomID)
+	});
 	
 	// Used when a user is done answering a question
-	socket.on("doneAnswering",(data)=>{
-		const roomID = `/${data.id}`;
+	socket.on("doneAnswering",()=>{
+		const roomID = PlayerRooms.get(socket.id);
 		socket.to(roomID).emit("doneAnswering");
 	})
 
 	socket.on("C/W", (data) => {
 		// data.value (True = Correct answer, False = Wrong answer)
-		const roomID = `/${data.id}`;
+		const roomID = PlayerRooms.get(socket.id);
 		if(!data.value){
-			let livesData = updateLives(data.playerID, roomID)
+			let livesData = updateLives(socket.id, roomID)
 			if(livesData == "winner"){
 				socket.to(roomID).emit("foundWinner","lose");
 				socket.emit("foundWinner", "win");
@@ -257,8 +261,7 @@ io.on("connection", socket => {
 			}
 		}
 		//check if there is more cards left and update hand
-		let updateHandVaule = updateHand(data.playerID, roomID);
-		console.log(updateHandVaule)
+		let updateHandVaule = updateHand(socket.id, roomID);
 		if(updateHandVaule == "winner"){
 			socket.to(roomID).emit("foundWinner","lose");
 			socket.emit("foundWinner", "win");
@@ -272,6 +275,8 @@ io.on("connection", socket => {
 		socket.to(roomID).emit("switchRoles");
 		socket.emit("switchRoles");
 	})
+});
+
 export { Rooms, PlayerRooms };
 // Start application server
 server.listen(3000, () => {

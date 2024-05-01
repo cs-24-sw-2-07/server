@@ -1,11 +1,28 @@
 import { Rooms } from "./index.js";
 export { updateLives, drawHand, updateHand, removeCardFromHand, drawCard };
 
+//make a starting hand
+function drawHand(deckSize, handSize){
+    let hand = new Set();
+    while(hand.size < handSize){
+        let pickedCard = Math.floor(Math.random()*deckSize);
+        hand.add(pickedCard);
+    }
+    return hand;
+}
+
+function removeCardFromHand(playerID, usedIndex,roomID){
+    let roomPlayers = Rooms.get(roomID).players;
+    let updatedHand = [...roomPlayers.get(playerID).hand];
+    roomPlayers.get(playerID).usedCards.push(updatedHand[usedIndex]);
+    updatedHand.splice(usedIndex,1);
+    roomPlayers.get(playerID).hand = [...updatedHand]
+}
 
 function updateLives(playerID, roomID){   
     const roomData = Rooms.get(roomID);
-
     let oppPlayer;
+    //Finds player that did not send socket event
     for (const key of Rooms.get(roomID).players.keys()) {
         if (playerID !== key) {
             oppPlayer = key;
@@ -23,7 +40,6 @@ function updateLives(playerID, roomID){
 
 function updateHand(playerID, roomID){
     let player = Rooms.get(roomID).players.get(playerID);
-    console.log(Rooms.get(roomID).outOfCardsNotify);
     //if the player's hand is empty and have recieved notification from the other player => find winner
     if(player.hand.length === 0 && Rooms.get(roomID).outOfCardsNotify){
         console.log("DONE")
@@ -34,9 +50,10 @@ function updateHand(playerID, roomID){
                 oppPlayer = key;
               break;
             }
-          }          
+          }    
+
         let oppPlayerLives = Rooms.get(roomID).players.get(oppPlayer).lives
-        console.log("lives ", oppPlayerLives, " ", player.lives)
+        console.log("lives for players: ", oppPlayerLives, " ", player.lives)
         if(oppPlayerLives < player.lives){
             return "winner"
         } else if(oppPlayerLives > player.lives){
@@ -64,24 +81,8 @@ function drawCard(usedCards, deckSize, handCards){
     do{
         pickedCard = Math.floor(Math.random()*deckSize);
     }while(usedCards.includes(pickedCard) || handCards.includes(pickedCard))
-
     return pickedCard;
 }
 
-function removeCardFromHand(playerID, usedIndex,roomID){
-    let roomPlayers = Rooms.get(roomID).players;
-    let updatedHand = [...roomPlayers.get(playerID).hand];
-    roomPlayers.get(playerID).usedCards.push(updatedHand[usedIndex]);
-    updatedHand.splice(usedIndex,1);
-    roomPlayers.get(playerID).hand = [...updatedHand]
-}
 
-//make a starting hand
-function drawHand(deckSize, handSize){
-    let hand = new Set();
-    while(hand.size < handSize){
-        let pickedCard = Math.floor(Math.random()*deckSize);
-        hand.add(pickedCard);
-    }
-    return hand;
-}
+
