@@ -92,17 +92,15 @@ io.on("connection", socket => {
 	socket.on("changeDeck", (Deck) => {
 		const roomID = PlayerRooms.get(socket.id);
 		const Room = Rooms.get(roomID);
-		const player = Room.players.get(socket.id);
 
 		const isPossible = ChangeDeckState(Deck, socket.id, Room);
-		if(isPossible && player.host) {
+		
+		if(isPossible) {
 			//Emit to other players that the host has readied up
 			const playerArr = MapToArrayObj(Room.players);
 			socket.to(roomID).emit("playerHandler", playerArr);
-
 			socket.emit("playerHandler", playerArr);
-			socket.emit("changeDeck",  Deck.name);
-		} else if (isPossible){
+			
 			socket.emit("changeDeck", Deck.name);
 		} else {
 			socket.emit("deckNotAccepted"); 
