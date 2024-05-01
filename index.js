@@ -58,6 +58,7 @@ io.on("connection", socket => {
 			socket.emit("changeSetting", UpdatedSettings);
 		} else {
 			socket.emit("cantChangeSettings", UpdatedSettings);
+
 		}
 	});
 	socket.on("joinLobby", (Joined) => {
@@ -127,7 +128,7 @@ io.on("connection", socket => {
 		}
 	});
 
-	socket.on("test", () => {
+	/*socket.on("test", () => {
 		const roomID = PlayerRooms.get(socket.id);
 		if(Rooms.get(roomID)) {
 			const Room = Rooms.get(roomID); 
@@ -139,7 +140,7 @@ io.on("connection", socket => {
 		} else {
 			console.log("Room doesnt exist");
 		}
-	});
+	});*/
 
 	/*socket.on("testPlayerMap", () => {
 		for(const [id, entry] of PlayerRooms.entries()) {
