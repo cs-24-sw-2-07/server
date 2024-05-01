@@ -155,6 +155,7 @@ function JoinLobby(PlayerObj, roomID, socket){
 /**
  * Allows for users to leave a lobby
  * @param {*} PlayerObj Object that contains the room's id
+ * @param {*} PlayerObj Object that contains the room's id
  * @param {*} socket Gets the socket id for the user
  * @param {*} Room puts the players id into a map.
  * @param {*} playersleftArr creates a new array with the updated map.

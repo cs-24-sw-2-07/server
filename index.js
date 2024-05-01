@@ -24,6 +24,7 @@ const PlayerRooms = new Map();
 //  res.sendFile(__dirname + '/index.html');
 // }); 
 // }); 
+// }); 
 
 // Handle socket connection
 io.on("connection", socket => {
