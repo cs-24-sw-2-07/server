@@ -88,15 +88,10 @@ function ChangeSettings(ChangeObj, roomID) {
  * @param {*} roomID Uses to read players id
  * @param {*} io Allows for access to the overall socket connection
  */
-function DeleteLobby(roomID, io){
-    //Deletes the key-value pairs from the PlayerRooms map
-    const players = Rooms.get(roomID).players
-    for(const [id,] of players.entries()) {
-        PlayerRooms.delete(id); 
-    }
-
-    io.to(roomID).socketsLeave(roomID);
-    Rooms.delete(roomID);
+function DeleteLobby(id, io){
+    const pathID = `/${id}`;
+    io.to(pathID).socketsLeave(pathID);
+    Rooms.delete(pathID);
 }
 
 /**
