@@ -2,7 +2,7 @@
 import express from "express"
 import http from "http"
 import { Server } from "socket.io"
-import { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj } from "./Lobby.js" // TODO: Make this work
+import { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj } from "./Lobby.js"
 //import { domainToASCII } from "url"
 const app = express()
 const server = http.createServer(app)
@@ -58,7 +58,6 @@ io.on("connection", socket => {
 			socket.emit("changeSetting", UpdatedSettings);
 		} else {
 			socket.emit("cantChangeSettings", UpdatedSettings);
-
 		}
 	});
 	socket.on("joinLobby", (Joined) => {
@@ -71,7 +70,6 @@ io.on("connection", socket => {
 			//Adds the current settings to the Object for the joining player
 			const JoinedreturnData = {...Room.settings, id: Joined.id, players: playersArr};
 			socket.emit("lobby", JoinedreturnData);
-			
 			console.log(Joined.name, "has joined the lobby with id:", roomID);
 		} else if (Room) {
 			socket.emit("RoomFull");
@@ -87,6 +85,7 @@ io.on("connection", socket => {
 	socket.on("deleteLobby", () => {
 		const roomID = PlayerRooms.get(socket.id);
 		socket.to(roomID).emit("lobbyDeleted");
+		DeleteLobby(roomID, socket);
 		DeleteLobby(roomID, socket);
 	});
 	socket.on("changeDeck", (Deck) => {
@@ -125,7 +124,7 @@ io.on("connection", socket => {
 			socket.emit("cantStartGame");
 		}
 	});
-
+});
 	/*socket.on("test", () => {
 		const roomID = PlayerRooms.get(socket.id);
 		if(Rooms.get(roomID)) {
@@ -150,8 +149,6 @@ io.on("connection", socket => {
 	})*/
 
 	//* ========================================Battle Page Handler ======================================================= *\\
-
-});
 
 export { Rooms, PlayerRooms };
 // Start application server
