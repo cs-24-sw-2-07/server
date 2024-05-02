@@ -128,9 +128,9 @@ io.on("connection", socket => {
 		const roomID = PlayerRooms.get(socket.id);
 		if(ShouldStartGame(roomID)) {
 			const roomData = Rooms.get(roomID);
-			
-			socket.to(roomID).emit("startedGame");
-			socket.emit("startedGame");
+			const startedGameData = {lives: roomData.settings.life,handSize:roomData.settings.handSize}
+			socket.to(roomID).emit("startedGame", startedGameData);
+			socket.emit("startedGame", startedGameData);
 			console.log("Started game")
 
 			//give each player lives according to settings
@@ -138,7 +138,7 @@ io.on("connection", socket => {
 			
 			//Give each player a starting hand			
 			let hand = drawHand(roomData.settings.deckSize,roomData.settings.handSize);
-		
+			
 			//give players correct information
 			for(let [, player] of roomData.players.entries()){
 				player.lives = lifeAmount;
@@ -162,7 +162,7 @@ io.on("connection", socket => {
 	// It also draws a new card
 	socket.on("cardPicked",(data)=>{
 		const roomID = PlayerRooms.get(socket.id);
-		let roomPlayers = Rooms.get(roomID).players
+		const roomPlayers = Rooms.get(roomID).players
 		const player = roomPlayers.get(socket.id)
 		//TODO make a validation that the played card is vaulied compaired to the hand
 		socket.to(roomID).emit("cardPicked", player.deck.cards[player.hand[data.cardID]])
@@ -178,30 +178,57 @@ io.on("connection", socket => {
 	socket.on("answerReview", (data) => {
 		// data.value (True = Correct answer, False = Wrong answer)
 		const roomID = PlayerRooms.get(socket.id);
+		
+		//check if there is more cards left and update hand
+		let updateHandVaule = updateHand(socket.id, roomID);
+		let winnerFound = false
+		if(updateHandVaule == "winner"){
+			winnerFound = true
+			socket.to(roomID).emit("foundWinner","lose");
+			socket.emit("foundWinner", "win");
+		} else if (updateHandVaule == "lost"){
+			winnerFound = true
+			socket.to(roomID).emit("foundWinner","win");
+			socket.emit("foundWinner", "lose");
+		} else if (updateHandVaule == "draw"){
+			winnerFound = true
+			socket.to(roomID).emit("foundWinner","draw");
+			socket.emit("foundWinner", "draw");
+		}
+		if(winnerFound){
+			console.log("Room have been delete")
+			const players = Rooms.get(roomID).players
+			for(const [id,] of players.entries()) {
+				PlayerRooms.delete(id); 
+			}
+
+			io.socketsLeave(roomID);
+			Rooms.delete(roomID);
+		}
+		
 		if(!data.value){
 			let livesData = updateLives(socket.id, roomID)
 			if(livesData == "winner"){
 				socket.to(roomID).emit("foundWinner","lose");
 				socket.emit("foundWinner", "win");
+				socket.to(roomID).emit("lifeUpdate",0);
+				socket.emit("lifeUpdateOpp",0);
+				
+				console.log("Room have been delete")
+				const players = Rooms.get(roomID).players
+				for(const [id,] of players.entries()) {
+					PlayerRooms.delete(id); 
+				}
+				io.socketsLeave(roomID);
+				Rooms.delete(roomID);
 			}else{
 				socket.to(roomID).emit("lifeUpdate",livesData);
 				socket.emit("lifeUpdateOpp",livesData);
 			}
 		}
-		//check if there is more cards left and update hand
-		let updateHandVaule = updateHand(socket.id, roomID);
-		if(updateHandVaule == "winner"){
-			socket.to(roomID).emit("foundWinner","lose");
-			socket.emit("foundWinner", "win");
-		} else if (updateHandVaule == "lost"){
-			socket.to(roomID).emit("foundWinner","win");
-			socket.emit("foundWinner", "lose");
-		} else if (updateHandVaule == "draw"){
-			socket.to(roomID).emit("foundWinner","draw");
-			socket.emit("foundWinner", "draw");
-		}
-		socket.to(roomID).emit("switchRoles");
-		socket.emit("switchRoles", roomID.players.get(socket.id).hand);
+
+		socket.oo(roomID).emit("switchRoles");
+		socket.emit("switchRoles", Rooms.get(roomID).players.get(socket.id).hand);
 	})
 });
 

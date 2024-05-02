@@ -96,7 +96,7 @@ function DeleteLobby(roomID, io){
         PlayerRooms.delete(id); 
     }
 
-    io.to(roomID).socketsLeave(roomID);
+    io.socketsLeave(roomID);
     Rooms.delete(roomID);
 }
 
