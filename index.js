@@ -34,7 +34,7 @@ io.on("connection", socket => {
 		if(PlayerRooms.has(socket.id)) {
 			if(Rooms.get(PlayerRooms.get(socket.id)).players.get(socket.id).host) { //Does player have host status? 
 				const roomID = PlayerRooms.get(socket.id);
-				socket.to(roomID).emit("lobbyDeleted");
+				socket.to(roomID).emit("leaveLobby");
 				DeleteLobby(roomID, socket);
 			} else {
 				const roomID = PlayerRooms.get(socket.id); 
@@ -81,12 +81,7 @@ io.on("connection", socket => {
 		const roomID = PlayerRooms.get(socket.id); 
 		const players = LeaveLobby(socket, roomID);
 		socket.to(roomID).emit("playerHandler", players);
-	});
-	socket.on("deleteLobby", () => {
-		const roomID = PlayerRooms.get(socket.id);
-		socket.to(roomID).emit("lobbyDeleted");
-		DeleteLobby(roomID, socket);
-		DeleteLobby(roomID, socket);
+		socket.emit("leaveLobby");
 	});
 	socket.on("changeDeck", (Deck) => {
 		const roomID = PlayerRooms.get(socket.id);
@@ -107,7 +102,12 @@ io.on("connection", socket => {
 			socket.emit("deckNotAccepted"); 
 		}
 	});
-
+	socket.on("deleteLobby", () => {
+		const roomID = PlayerRooms.get(socket.id);
+		socket.to(roomID).emit("leaveLobby");
+		socket.emit("leaveLobby");
+		DeleteLobby(roomID, io);
+	}); 
 	//Listens for player ready and returns the players readyness status.
 	socket.on("playerReady", () => {
 		const roomID = PlayerRooms.get(socket.id);
