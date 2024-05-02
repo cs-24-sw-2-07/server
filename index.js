@@ -77,11 +77,11 @@ io.on("connection", socket => {
 			socket.emit("roomNotExist");
 		}
 	});
-	socket.on("leaveLobby", () => {
+	socket.on("lobbyLeave", () => {
 		const roomID = PlayerRooms.get(socket.id); 
 		const players = LeaveLobby(socket, roomID);
 		socket.to(roomID).emit("playerHandler", players);
-		socket.emit("leaveLobby");
+		socket.emit("LeaveLobby");
 	});
 	socket.on("changeDeck", (Deck) => {
 		const roomID = PlayerRooms.get(socket.id);
@@ -104,8 +104,8 @@ io.on("connection", socket => {
 	});
 	socket.on("deleteLobby", () => {
 		const roomID = PlayerRooms.get(socket.id);
-		socket.to(roomID).emit("leaveLobby");
-		socket.emit("leaveLobby");
+		socket.to(roomID).emit("LeaveLobby");
+		socket.emit("LeaveLobby");
 		DeleteLobby(roomID, io);
 	}); 
 	//Listens for player ready and returns the players readyness status.
