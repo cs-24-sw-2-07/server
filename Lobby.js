@@ -1,6 +1,6 @@
 //import path from "path";
 import { Rooms, PlayerRooms } from "./index.js";
-export { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj };
+export { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj, isUsernameValid };
 
 //* =================================================== host lobby =============================================================== *\\
 /**
@@ -236,16 +236,23 @@ function isSettingValid(SettingObj) {
     const setting = SettingObj.key;
     switch(setting) {
         case "deckSize": 
-            return SettingObj[setting] >= 15 && SettingObj[setting] <= 50;
+            return SettingObj[setting] >= 5;
         case "handSize":
-            return SettingObj[setting] >= 5 && SettingObj[setting] <= 7;
+            return SettingObj[setting] >= 3 && SettingObj[setting] <= 15;
         case "life":
-            return SettingObj[setting] >= 1 && SettingObj[setting] <= 5;
+            return SettingObj[setting] >= 1 && SettingObj[setting] <= 10;
         case "lobbySize":
             return SettingObj[setting] >= 2 && SettingObj[setting] <= 30;
         default: 
             return false; 
     }
+}
+
+function isUsernameValid(username) {
+    if(username.length < 2) {
+        return false; 
+    }
+    return true; 
 }
 
 export { Rooms }; 
