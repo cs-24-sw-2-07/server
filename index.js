@@ -2,7 +2,7 @@
 import express from "express"
 import http from "http"
 import { Server } from "socket.io"
-import { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj } from "./Lobby.js"
+import { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj, isUsernameValid } from "./Lobby.js"
 import { updateLives, removeCardFromHand, drawHand, updateHand } from "./Battle.js";
 //import { domainToASCII } from "url"
 const app = express()
@@ -34,7 +34,7 @@ io.on("connection", socket => {
 		if(PlayerRooms.has(socket.id)) {
 			if(Rooms.get(PlayerRooms.get(socket.id)).players.get(socket.id).host) { //Does player have host status? 
 				const roomID = PlayerRooms.get(socket.id);
-				socket.to(roomID).emit("lobbyDeleted");
+				socket.to(roomID).emit("leaveLobby");
 				DeleteLobby(roomID, socket);
 			} else {
 				const roomID = PlayerRooms.get(socket.id); 
@@ -46,9 +46,13 @@ io.on("connection", socket => {
 
 	//* ================================================= Lobby Handler ======================================================== *\\
 	socket.on("createLobby", (username) => {
-		console.log("Lobby was created");
-		const CreateLobbyObj = CreateLobby(socket, username);
-		socket.emit("lobby", CreateLobbyObj);
+		if(isUsernameValid(username)) {
+			console.log("Lobby was created");
+			const CreateLobbyObj = CreateLobby(socket, username);
+			socket.emit("lobby", CreateLobbyObj);
+		} else {
+			socket.emit("invalidUsername"); 
+		}
 	});
 	socket.on("changeSettings", (UpdatedSettings) => {
 		const roomID = PlayerRooms.get(socket.id); 
@@ -64,29 +68,28 @@ io.on("connection", socket => {
 		const roomID = `/${Joined.id}`;
 		const Room = Rooms.get(roomID);
 		if(Room && Room.players.size < Room.settings.lobbySize) { 
-			const playersArr = JoinLobby(Joined, roomID, socket);
-			socket.to(roomID).emit("playerHandler", playersArr);
-			
-			//Adds the current settings to the Object for the joining player
-			const JoinedreturnData = {...Room.settings, id: Joined.id, players: playersArr};
-			socket.emit("lobby", JoinedreturnData);
-			console.log(Joined.name, "has joined the lobby with id:", roomID);
+			if(isUsernameValid(Joined.name)) {
+				const playersArr = JoinLobby(Joined, roomID, socket);
+				socket.to(roomID).emit("playerHandler", playersArr);
+				
+				//Adds the current settings to the Object for the joining player
+				const JoinedreturnData = {...Room.settings, id: Joined.id, players: playersArr};
+				socket.emit("lobby", JoinedreturnData);
+				console.log(Joined.name, "has joined the lobby with id:", roomID);
+			} else {
+				socket.emit("invalidUsername"); 
+			}
 		} else if (Room) {
 			socket.emit("RoomFull");
 		} else {
 			socket.emit("roomNotExist");
 		}
 	});
-	socket.on("leaveLobby", () => {
+	socket.on("lobbyLeave", () => {
 		const roomID = PlayerRooms.get(socket.id); 
 		const players = LeaveLobby(socket, roomID);
 		socket.to(roomID).emit("playerHandler", players);
-	});
-	socket.on("deleteLobby", () => {
-		const roomID = PlayerRooms.get(socket.id);
-		socket.to(roomID).emit("lobbyDeleted");
-		DeleteLobby(roomID, socket);
-		DeleteLobby(roomID, socket);
+		socket.emit("LeaveLobby");
 	});
 	socket.on("changeDeck", (Deck) => {
 		const roomID = PlayerRooms.get(socket.id);
@@ -101,25 +104,24 @@ io.on("connection", socket => {
 			socket.emit("playerHandler", playerArr);
 			
 			socket.emit("changeDeck", Deck.name);
-			console.log("Deck accepted") //! Console log
 		} else {
-			console.log("Deck not accepted") //! Console log
 			socket.emit("deckNotAccepted"); 
 		}
 	});
-
+	socket.on("deleteLobby", () => {
+		const roomID = PlayerRooms.get(socket.id);
+		socket.to(roomID).emit("LeaveLobby");
+		socket.emit("LeaveLobby");
+		DeleteLobby(roomID, io);
+	}); 
 	//Listens for player ready and returns the players readyness status.
 	socket.on("playerReady", () => {
 		const roomID = PlayerRooms.get(socket.id);
 		const ReturnPlayerReady = PlayerReady(socket.id, roomID); 
 		console.log("player was ready") //! Console log
-		socket.to(roomID).emit("readyUp", ReturnPlayerReady); 
-		socket.emit("readyUp", ReturnPlayerReady);
+		socket.to(roomID).emit("playerHandler", ReturnPlayerReady); 
+		socket.emit("playerHandler", ReturnPlayerReady);
 	});
-	socket.on("testEvent", () => {
-		socket.join("/123456");
-		console.log("User joined ", socket.id);
-	})
 
 	//Listens for a 'startGame' event and either emits a 'startedGame' event to all clients in a room if conditions are met, or sends a 'cantStartGame' event to the initiating client if not.
 	socket.on("startGame", () => {
