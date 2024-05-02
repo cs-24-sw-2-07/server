@@ -1,6 +1,6 @@
 //import path from "path";
 import { Rooms, PlayerRooms } from "./index.js";
-export { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj };
+export { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj, isUsernameValid };
 
 //* =================================================== host lobby =============================================================== *\\
 /**
@@ -246,6 +246,13 @@ function isSettingValid(SettingObj) {
         default: 
             return false; 
     }
+}
+
+function isUsernameValid(username) {
+    if(username.length < 2) {
+        return false; 
+    }
+    return true; 
 }
 
 export { Rooms }; 
