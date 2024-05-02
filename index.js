@@ -121,8 +121,8 @@ io.on("connection", socket => {
 		const roomID = PlayerRooms.get(socket.id);
 		const ReturnPlayerReady = PlayerReady(socket.id, roomID); 
 		console.log("player was ready") //! Console log
-		socket.to(roomID).emit("readyUp", ReturnPlayerReady); 
-		socket.emit("readyUp", ReturnPlayerReady);
+		socket.to(roomID).emit("playerHandler", ReturnPlayerReady); 
+		socket.emit("playerHandler", ReturnPlayerReady);
 	});
 	/*socket.on("testEvent", () => {
 		socket.join("/123456");
