@@ -65,7 +65,7 @@ io.on("connection", socket => {
 		}
 	});
 	socket.on("joinLobby", (Joined) => {
-		const roomID = PlayerRooms.get(socket.id);
+		const roomID = `/${Joined.id}`;
 		const Room = Rooms.get(roomID);
 		if(Room && Room.players.size < Room.settings.lobbySize) { 
 			if(isUsernameValid(Joined.name)) {
