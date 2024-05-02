@@ -173,7 +173,7 @@ io.on("connection", socket => {
 		socket.to(roomID).emit("doneAnswering");
 	})
 
-	socket.on("C/W", (data) => {
+	socket.on("answerReview", (data) => {
 		// data.value (True = Correct answer, False = Wrong answer)
 		const roomID = PlayerRooms.get(socket.id);
 		if(!data.value){
@@ -183,6 +183,7 @@ io.on("connection", socket => {
 				socket.emit("foundWinner", "win");
 			}else{
 				socket.to(roomID).emit("lifeUpdate",livesData);
+				socket.emit("lifeUpdateOpp",livesData);
 			}
 		}
 		//check if there is more cards left and update hand
@@ -198,7 +199,7 @@ io.on("connection", socket => {
 			socket.emit("foundWinner", "draw");
 		}
 		socket.to(roomID).emit("switchRoles");
-		socket.emit("switchRoles");
+		socket.emit("switchRoles", roomID.players.get(socket.id).hand);
 	})
 });
 
