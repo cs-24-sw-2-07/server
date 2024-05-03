@@ -128,7 +128,10 @@ io.on("connection", socket => {
 		const roomID = PlayerRooms.get(socket.id);
 		if(ShouldStartGame(roomID)) {
 			const roomData = Rooms.get(roomID);
-			const startedGameData = {lives: roomData.settings.life,handSize:roomData.settings.handSize}
+			const startedGameData = {
+				lives: roomData.settings.life,
+				handSize: roomData.settings.handSize
+			}
 			socket.to(roomID).emit("startedGame", startedGameData);
 			socket.emit("startedGame", startedGameData);
 			console.log("Started game")
