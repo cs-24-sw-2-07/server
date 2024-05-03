@@ -138,7 +138,7 @@ io.on("connection", socket => {
 			
 			//Give each player a starting hand			
 			let hand = drawHand(roomData.settings.deckSize,roomData.settings.handSize);
-			
+			// ! TODO lave så vært deck indebære decksize antal kort
 			//give players correct information
 			for(let [, player] of roomData.players.entries()){
 				player.lives = lifeAmount;
