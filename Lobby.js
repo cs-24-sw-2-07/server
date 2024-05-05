@@ -1,6 +1,6 @@
 //import path from "path";
 import { Rooms, PlayerRooms } from "./index.js";
-export { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj, isUsernameValid };
+export { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj, isUsernameValid, CheckPlayerDecks };
 
 //* =================================================== host lobby =============================================================== *\\
 /**
@@ -75,7 +75,7 @@ function RoomStateObj(socket, username, Settings){
  */
 //change Settings 
 function ChangeSettings(ChangeObj, roomID) {
-    if(!isSettingValid(ChangeObj)) {
+    if(!isSettingValid(ChangeObj, roomID)) {
         return false; 
     }
     const setting = ChangeObj.key;
@@ -232,13 +232,14 @@ function MapToArrayObj(map) {
  * @param {*} SettingObj the object containing the new setting
  * @returns boolean is true if the setting is within the range and false if not
  */
-function isSettingValid(SettingObj) {
+function isSettingValid(SettingObj, roomID) {
     const setting = SettingObj.key;
+    const settings = Rooms.get(roomID).settings;
     switch(setting) {
         case "deckSize": 
             return SettingObj[setting] >= 5;
         case "handSize":
-            return SettingObj[setting] >= 3 && SettingObj[setting] <= 15;
+            return SettingObj[setting] >= 3 && SettingObj[setting] <= settings.deckSize;
         case "life":
             return SettingObj[setting] >= 1 && SettingObj[setting] <= 10;
         case "lobbySize":
@@ -254,5 +255,20 @@ function isUsernameValid(username) {
     }
     return true; 
 }
+
+function CheckPlayerDecks(roomID, settings, setting) {
+    const players = Rooms.get(roomID).players; 
+    let playersNotAccepted = []; 
+    for (const [id, playerData] of players.entries()) {
+        if(playerData.deck !== null && playerData.deck.cards.length < settings[setting]) {
+            playerData.ready = false; 
+            playerData.deck = null;  
+            playersNotAccepted.push(id);
+        }
+    }
+    return playersNotAccepted; 
+}
+
+
 
 export { Rooms }; 
