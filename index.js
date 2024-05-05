@@ -59,9 +59,6 @@ io.on("connection", socket => {
 		const isPossible = ChangeSettings(UpdatedSettings, roomID);
 		if(isPossible) {
 			socket.to(roomID).emit("changeSetting", UpdatedSettings);
-			socket.emit("changeSetting", UpdatedSettings);
-		} else {
-			socket.emit("cantChangeSettings", UpdatedSettings);
 		}
 	});
 	socket.on("joinLobby", (Joined) => {
@@ -207,7 +204,7 @@ io.on("connection", socket => {
 		}
 		socket.to(roomID).emit("switchRoles");
 		socket.emit("switchRoles");
-	})
+	});
 });
 
 export { Rooms, PlayerRooms };
