@@ -24,20 +24,20 @@ const PlayerRooms = new Map();
 // Basic app routing
 // app.get('/', (req, res) => {
 //  res.sendFile(__dirname + '/index.html');
-// }); 
+// });
 
 // Handle socket connection
 io.on("connection", socket => {
 	console.log(`a user with the id: ${socket.id} has connected`);
-	socket.on("disconnect", () => { 
+	socket.on("disconnect", () => {
 		console.log(`a user with the id: ${socket.id} has disconnected`);
 		if(PlayerRooms.has(socket.id)) {
-			if(Rooms.get(PlayerRooms.get(socket.id)).players.get(socket.id).host) { //Does the player have host status 
+			if(Rooms.get(PlayerRooms.get(socket.id)).players.get(socket.id).host) { //Does the player have host status
 				const roomID = PlayerRooms.get(socket.id);
 				socket.to(roomID).emit("leaveLobby");
 				DeleteLobby(roomID, io);
 			} else {
-				const roomID = PlayerRooms.get(socket.id); 
+				const roomID = PlayerRooms.get(socket.id);
 				const players = LeaveLobby(socket, roomID);
 				socket.to(roomID).emit("playerHandler", players);
 			}
@@ -51,54 +51,50 @@ io.on("connection", socket => {
 			const CreateLobbyObj = CreateLobby(socket, username);
 			socket.emit("lobby", CreateLobbyObj);
 		} else {
-			socket.emit("invalidUsername"); 
+			socket.emit("invalidUsername");
 		}
 	});
 	socket.on("changeSettings", (UpdatedSettings) => {
-		const roomID = PlayerRooms.get(socket.id); 
+		const roomID = PlayerRooms.get(socket.id);
 		const isPossible = ChangeSettings(UpdatedSettings, roomID);
 		if(isPossible) {
 			socket.to(roomID).emit("changeSetting", UpdatedSettings);
 
 			//Check if the changed setting is the deck size
 			const setting = UpdatedSettings.key
-			if(setting === "deckSize") { 
+			if(setting === "deckSize") {
 				//All players whose deck was not accepted will be in the array playersNotAccepted
-				const playersNotAccepted = CheckPlayerDecks(roomID, UpdatedSettings, setting); 
+				const playersNotAccepted = CheckPlayerDecks(roomID, UpdatedSettings, setting);
 				if(playersNotAccepted.length !== 0) {
 					//Emit to the player that their deck is not valid anymore
 					for(const playerID of playersNotAccepted) {
-						socket.to(playerID).emit("deckNotAccepted"); 
-						if(playerID === socket.id) {
-							socket.emit("deckNotAccepted");
-						}
+						io.to(playerID).emit("deckNotAccepted");
 					}
-					
-					//Emit the updated player statuses 
+
+					//Emit the updated player statuses
 					const players = Rooms.get(roomID).players;
 					const playersArr = MapToArrayObj(players);
-					socket.to(roomID).emit("playerHandler", playersArr); 
-					socket.emit("playerHandler", playersArr); 
+					io.to(roomID).emit("playerHandler", playersArr);
 				}
 
 			}
-			
+
 		}
 	});
 	socket.on("joinLobby", (Joined) => {
 		const roomID = `/${Joined.id}`;
 		const Room = Rooms.get(roomID);
-		if(Room && Room.players.size < Room.settings.lobbySize) { 
+		if(Room && Room.players.size < Room.settings.lobbySize) {
 			if(isUsernameValid(Joined.name)) {
 				const playersArr = JoinLobby(Joined, roomID, socket);
 				socket.to(roomID).emit("playerHandler", playersArr);
-				
+
 				//Adds the current settings to the Object for the joining player
 				const JoinedreturnData = {...Room.settings, id: Joined.id, players: playersArr};
 				socket.emit("lobby", JoinedreturnData);
 				console.log(Joined.name, "has joined the lobby with id:", roomID);
 			} else {
-				socket.emit("invalidUsername"); 
+				socket.emit("invalidUsername");
 			}
 		} else if (Room) {
 			socket.emit("RoomFull");
@@ -107,7 +103,7 @@ io.on("connection", socket => {
 		}
 	});
 	socket.on("lobbyLeave", () => {
-		const roomID = PlayerRooms.get(socket.id); 
+		const roomID = PlayerRooms.get(socket.id);
 		const players = LeaveLobby(socket, roomID);
 		socket.to(roomID).emit("playerHandler", players);
 		socket.emit("LeaveLobby");
@@ -117,31 +113,28 @@ io.on("connection", socket => {
 		const Room = Rooms.get(roomID);
 
 		const isPossible = ChangeDeckState(Deck, socket.id, Room);
-		
+
 		if(isPossible) {
 			//Emit to other players that the host has readied up
 			const playerArr = MapToArrayObj(Room.players);
-			socket.to(roomID).emit("playerHandler", playerArr);
-			socket.emit("playerHandler", playerArr);
-			
+			io.to(roomID).emit("playerHandler", playerArr);
+
 			socket.emit("changeDeck", Deck.name);
 		} else {
-			socket.emit("deckNotAccepted"); 
+			socket.emit("deckNotAccepted");
 		}
 	});
 	socket.on("deleteLobby", () => {
 		const roomID = PlayerRooms.get(socket.id);
-		socket.to(roomID).emit("LeaveLobby");
-		socket.emit("LeaveLobby");
+		io.to(roomID).emit("LeaveLobby");
 		DeleteLobby(roomID, io);
-	}); 
+	});
 	//Listens for player ready and returns the players readyness status.
 	socket.on("playerReady", () => {
 		const roomID = PlayerRooms.get(socket.id);
-		const ReturnPlayerReady = PlayerReady(socket.id, roomID); 
+		const ReturnPlayerReady = PlayerReady(socket.id, roomID);
 		console.log("player was ready") //! Console log
-		socket.to(roomID).emit("playerHandler", ReturnPlayerReady); 
-		socket.emit("playerHandler", ReturnPlayerReady);
+		io.to(roomID).emit("playerHandler", ReturnPlayerReady);
 	});
 
 	//Listens for a 'startGame' event and either emits a 'startedGame' event to all clients in a room if conditions are met, or sends a 'cantStartGame' event to the initiating client if not.
@@ -153,27 +146,29 @@ io.on("connection", socket => {
 				lives: roomData.settings.life,
 				handSize: roomData.settings.handSize
 			}
-			socket.to(roomID).emit("startedGame", startedGameData);
-			socket.emit("startedGame", startedGameData);
+			io.to(roomID).emit("startedGame", startedGameData);
 			console.log("Started game")
 
 			//give each player lives according to settings
 			let lifeAmount = roomData.settings.life;
-			
-			//Give each player a starting hand			
+
+			//Give each player a starting hand
 			let hand = drawHand(roomData.settings.deckSize, roomData.settings.handSize);
 			// ! TODO lave så vært deck indebære decksize antal kort
 			//give players correct information
-			for(let [, player] of roomData.players.entries()){
+			for(let [playerid, player] of roomData.players.entries()){
 				player.lives = lifeAmount;
 				player.hand = [...hand];
-				if(player.host){
-					console.log("Sending to host")
-					socket.emit("playerInfo", player);
-				}else{
-					console.log("Sending to non-host")
-					socket.to(roomID).emit("playerInfo", player);
-				}
+				// if(player.host){
+				// 	console.log("Sending to host")
+				// 	socket.emit("playerInfo", player);
+				// }else{
+				// 	console.log("Sending to non-host")
+				// 	socket.to(roomID).emit("playerInfo", player);
+				// }
+
+				//TODO: Tjek om dette stadig sender til den enkelte spiller.
+				io.to(playerid).emit("playerInfo", player);
 			}
 		} else {
 			socket.emit("cantStartGame");
@@ -181,10 +176,10 @@ io.on("connection", socket => {
 	});
 
 	//* ========================================Battle Page Handler ======================================================= *\\
-	
+
 	// Used for when a user picks a card to play
 	// It also draws a new card
-	socket.on("cardPicked",(data)=>{
+	socket.on("cardPicked", (data) => {
 		const roomID = PlayerRooms.get(socket.id);
 		const roomPlayers = Rooms.get(roomID).players
 		const player = roomPlayers.get(socket.id)
@@ -192,9 +187,9 @@ io.on("connection", socket => {
 		socket.to(roomID).emit("cardPicked", player.deck.cards[player.hand[data.cardID]])
 		removeCardFromHand(socket.id, data.cardID, roomID)
 	});
-	
+
 	// Used when a user is done answering a question
-	socket.on("doneAnswering",()=>{
+	socket.on("doneAnswering", () => {
 		const roomID = PlayerRooms.get(socket.id);
 		socket.to(roomID).emit("doneAnswering");
 	})
@@ -225,7 +220,7 @@ io.on("connection", socket => {
 				socket.emit("foundWinner", "win");
 				socket.to(roomID).emit("lifeUpdate",0);
 				socket.emit("lifeUpdateOpp",0);
-				
+
 				winnerFound = true
 			}else{
 				socket.to(roomID).emit("lifeUpdate",livesData);
@@ -238,7 +233,7 @@ io.on("connection", socket => {
 			console.log("Room have been delete")
 			const players = Rooms.get(roomID).players
 			for(const [id,] of players.entries()) {
-				PlayerRooms.delete(id); 
+				PlayerRooms.delete(id);
 			}
 
 			io.socketsLeave(roomID);

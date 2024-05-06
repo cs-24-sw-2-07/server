@@ -19,7 +19,7 @@ function removeCardFromHand(playerID, usedIndex,roomID){
     roomPlayers.get(playerID).hand = [...updatedHand]
 }
 
-function updateLives(playerID, roomID){   
+function updateLives(playerID, roomID){
     const roomData = Rooms.get(roomID);
     let oppPlayer;
     //Find player that did not send socket event
@@ -28,7 +28,7 @@ function updateLives(playerID, roomID){
             oppPlayer = key;
             break;
         }
-    } 
+    }
     roomData.players.get(oppPlayer).lives--;
     let oppPlayerLives = roomData.players.get(oppPlayer).lives;
     console.log(oppPlayerLives);
@@ -41,7 +41,7 @@ function updateLives(playerID, roomID){
 function updateHand(playerID, roomID){
     let player = Rooms.get(roomID).players.get(playerID);
     //if the player's hand is empty and have recieved notification from the other player => find winner
-    if(player.hand.length === 0 && Rooms.get(roomID).outOfCardsNotify){
+    if(player.hand.length === 0 && Rooms.get(roomID).outOfCardsNotify){ //TODO: Skal kunne fortsætte med at spille videre, hvis en spiller dør og der er 3+ spillere ialt.
         console.log("DONE")
         //Finds the other player, so we can calculate who won
         let oppPlayer;
@@ -50,7 +50,7 @@ function updateHand(playerID, roomID){
                 oppPlayer = key;
               break;
             }
-          }    
+          }
 
         let oppPlayerLives = Rooms.get(roomID).players.get(oppPlayer).lives
         console.log("lives for players: ", oppPlayerLives, " ", player.lives)
@@ -83,6 +83,3 @@ function drawCard(usedCards, deckSize, handCards){
     }while(usedCards.includes(pickedCard) || handCards.includes(pickedCard))
     return pickedCard;
 }
-
-
-
