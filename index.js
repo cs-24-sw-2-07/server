@@ -2,7 +2,7 @@
 import express from "express"
 import http from "http"
 import { Server } from "socket.io"
-import { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj, isUsernameValid } from "./Lobby.js"
+import { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj, isUsernameValid, CheckPlayerDecks } from "./Lobby.js"
 import { updateLives, removeCardFromHand, drawHand, updateHand } from "./Battle.js";
 //import { domainToASCII } from "url"
 const app = express()
@@ -32,10 +32,10 @@ io.on("connection", socket => {
 	socket.on("disconnect", () => { 
 		console.log(`a user with the id: ${socket.id} has disconnected`);
 		if(PlayerRooms.has(socket.id)) {
-			if(Rooms.get(PlayerRooms.get(socket.id)).players.get(socket.id).host) { //Does player have host status? 
+			if(Rooms.get(PlayerRooms.get(socket.id)).players.get(socket.id).host) { //Does the player have host status 
 				const roomID = PlayerRooms.get(socket.id);
 				socket.to(roomID).emit("leaveLobby");
-				DeleteLobby(roomID, socket);
+				DeleteLobby(roomID, io);
 			} else {
 				const roomID = PlayerRooms.get(socket.id); 
 				const players = LeaveLobby(socket, roomID);
@@ -59,9 +59,30 @@ io.on("connection", socket => {
 		const isPossible = ChangeSettings(UpdatedSettings, roomID);
 		if(isPossible) {
 			socket.to(roomID).emit("changeSetting", UpdatedSettings);
-			socket.emit("changeSetting", UpdatedSettings);
-		} else {
-			socket.emit("cantChangeSettings", UpdatedSettings);
+
+			//Check if the changed setting is the deck size
+			const setting = UpdatedSettings.key
+			if(setting === "deckSize") { 
+				//All players whose deck was not accepted will be in the array playersNotAccepted
+				const playersNotAccepted = CheckPlayerDecks(roomID, UpdatedSettings, setting); 
+				if(playersNotAccepted.length !== 0) {
+					//Emit to the player that their deck is not valid anymore
+					for(const playerID of playersNotAccepted) {
+						socket.to(playerID).emit("deckNotAccepted"); 
+						if(playerID === socket.id) {
+							socket.emit("deckNotAccepted");
+						}
+					}
+					
+					//Emit the updated player statuses 
+					const players = Rooms.get(roomID).players;
+					const playersArr = MapToArrayObj(players);
+					socket.to(roomID).emit("playerHandler", playersArr); 
+					socket.emit("playerHandler", playersArr); 
+				}
+
+			}
+			
 		}
 	});
 	socket.on("joinLobby", (Joined) => {
