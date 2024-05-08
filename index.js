@@ -180,6 +180,7 @@ io.on("connection", socket => {
 	// Used for when a user picks a card to play
 	// It also draws a new card
 	socket.on("cardPicked", (data) => {
+		// TODO: Flere spillere validering
 		const roomID = PlayerRooms.get(socket.id);
 		const roomPlayers = Rooms.get(roomID).players
 		const player = roomPlayers.get(socket.id)
@@ -190,6 +191,7 @@ io.on("connection", socket => {
 
 	// Used when a user is done answering a question
 	socket.on("doneAnswering", () => {
+		// TODO: Flere spillere
 		const roomID = PlayerRooms.get(socket.id);
 		socket.to(roomID).emit("doneAnswering");
 	})
@@ -197,7 +199,7 @@ io.on("connection", socket => {
 	socket.on("answerReview", (data) => {
 		// data.value (True = Correct answer, False = Wrong answer)
 		const roomID = PlayerRooms.get(socket.id);
-		//check if there is more cards left and update hand
+		// check if there is more cards left and update hand
 		let updateHandVaule = updateHand(socket.id, roomID);
 		let winnerFound = false
 		if(updateHandVaule == "winner"){
