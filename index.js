@@ -142,12 +142,6 @@ io.on("connection", socket => {
 		const roomID = PlayerRooms.get(socket.id);
 		if(ShouldStartGame(roomID)) {
 			const roomData = Rooms.get(roomID);
-			const startedGameData = {
-				lives: roomData.settings.life,
-				handSize: roomData.settings.handSize
-			}
-			io.to(roomID).emit("startedGame", startedGameData);
-			console.log("Started game")
 
 			//give each player lives according to settings
 			let lifeAmount = roomData.settings.life;
@@ -159,17 +153,16 @@ io.on("connection", socket => {
 			for(let [playerid, player] of roomData.players.entries()){
 				player.lives = lifeAmount;
 				player.hand = [...hand];
-				// if(player.host){
-				// 	console.log("Sending to host")
-				// 	socket.emit("playerInfo", player);
-				// }else{
-				// 	console.log("Sending to non-host")
-				// 	socket.to(roomID).emit("playerInfo", player);
-				// }
 
-				//TODO: Tjek om dette stadig sender til den enkelte spiller.
 				io.to(playerid).emit("playerInfo", player);
 			}
+			const playerLives = MapToPlayerLives(roomData.players);
+			const startedGameData = {
+				playerLives: playerLives,
+				handSize: roomData.settings.handSize
+			}
+			io.to(roomID).emit("startedGame", startedGameData);
+			console.log("Started game")
 		} else {
 			socket.emit("cantStartGame");
 		}
