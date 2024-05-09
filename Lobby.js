@@ -63,7 +63,7 @@ function RoomStateObj(socket, username, Settings){
         "players": new Map(),
         "settings": Settings,
         "outOfCardsNotify": false,
-        "turn": socket.id
+        "turn": { current: undefined, next: undefined }
     };
     LobbyStateObj.players.set(socket.id, CreatePlayer(username, true, socket.id));
     return LobbyStateObj; 

@@ -3,7 +3,7 @@ import express from "express"
 import http from "http"
 import { Server } from "socket.io"
 import { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj, isUsernameValid, CheckPlayerDecks } from "./Lobby.js"
-import { updateLives, removeCardFromHand, drawHand, updateHand, MapToPlayerLives } from "./Battle.js";
+import { updateLives, removeCardFromHand, drawHand, updateHand, MapToPlayerLives, nextPlayer } from "./Battle.js";
 //import { domainToASCII } from "url"
 const app = express()
 const server = http.createServer(app)
@@ -156,6 +156,11 @@ io.on("connection", socket => {
 
 				io.to(playerid).emit("playerInfo", player);
 			}
+
+			roomData.turn.current = socket.id;
+			roomData.turn.next = nextPlayer(roomData);
+			console.log("TURN DATA", roomData.turn);
+
 			const playerLives = MapToPlayerLives(roomData.players);
 			const startedGameData = {
 				playerLives: playerLives,
@@ -221,6 +226,10 @@ io.on("connection", socket => {
 				winnerFound = true
 			}
 		}
+		
+		roomData.turn.current = roomData.turn.next;
+		roomData.turn.next = nextPlayer(roomData);
+
 		socket.to(roomID).emit("switchRoles", { turn: roomData.turn });
 		socket.emit("switchRoles", { turn: roomData.turn, hand: roomData.players.get(socket.id).hand });
 		if(winnerFound){

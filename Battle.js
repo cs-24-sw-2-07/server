@@ -1,5 +1,5 @@
 import { Rooms } from "./index.js";
-export { updateLives, drawHand, updateHand, removeCardFromHand, drawCard, MapToPlayerLives };
+export { updateLives, drawHand, updateHand, removeCardFromHand, drawCard, MapToPlayerLives, nextPlayer };
 
 //make a starting hand
 function drawHand(deckSize, handSize){
@@ -94,4 +94,10 @@ function MapToPlayerLives(map) {
         });
     }
     return array;
+}
+
+function nextPlayer(room) {
+    let playersLeft = MapToPlayerLives(room.players).filter(player => player.lives !== 0);
+    let currentIndex = playersLeft.findIndex(player => room.turn.current === player.id);
+    return playersLeft[(currentIndex + 1) % playersLeft.length].id;
 }
