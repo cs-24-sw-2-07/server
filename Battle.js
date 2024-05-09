@@ -1,5 +1,5 @@
 import { Rooms } from "./index.js";
-export { updateLives, drawHand, updateHand, removeCardFromHand, drawCard };
+export { updateLives, drawHand, updateHand, removeCardFromHand, drawCard, MapToPlayerLives };
 
 //make a starting hand
 function drawHand(deckSize, handSize){
@@ -82,4 +82,16 @@ function drawCard(usedCards, deckSize, handCards){
         pickedCard = Math.floor(Math.random()*deckSize);
     }while(usedCards.includes(pickedCard) || handCards.includes(pickedCard))
     return pickedCard;
+}
+
+function MapToPlayerLives(map) {
+    let array = [];
+    for(const [key, value] of map.entries()) {
+        array.push({
+            name: value.name,
+            id: key,
+            lives: value.lives
+        });
+    }
+    return array;
 }

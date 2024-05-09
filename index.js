@@ -3,7 +3,7 @@ import express from "express"
 import http from "http"
 import { Server } from "socket.io"
 import { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj, isUsernameValid, CheckPlayerDecks } from "./Lobby.js"
-import { updateLives, removeCardFromHand, drawHand, updateHand } from "./Battle.js";
+import { updateLives, removeCardFromHand, drawHand, updateHand, MapToPlayerLives } from "./Battle.js";
 //import { domainToASCII } from "url"
 const app = express()
 const server = http.createServer(app)
@@ -217,16 +217,13 @@ io.on("connection", socket => {
 		}
 		if(!data.value){
 			let livesData = updateLives(socket.id, roomID)
+			const lifeUpdateData = MapToPlayerLives(Rooms.get(roomID).players);
+			io.to(roomID).emit("lifeUpdate",lifeUpdateData);
 			if(livesData == "winner"){
 				socket.to(roomID).emit("foundWinner","lose");
 				socket.emit("foundWinner", "win");
-				socket.to(roomID).emit("lifeUpdate",0);
-				socket.emit("lifeUpdateOpp",0);
 
 				winnerFound = true
-			}else{
-				socket.to(roomID).emit("lifeUpdate",livesData);
-				socket.emit("lifeUpdateOpp",livesData);
 			}
 		}
 		socket.to(roomID).emit("switchRoles");
