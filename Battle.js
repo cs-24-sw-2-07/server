@@ -98,6 +98,9 @@ function MapToPlayerLives(map) {
 
 function nextPlayer(room) {
     let playersLeft = MapToPlayerLives(room.players).filter(player => player.lives !== 0);
+    //console.log(playersLeft);
     let currentIndex = playersLeft.findIndex(player => room.turn.current === player.id);
+    //console.log(currentIndex);
+    console.log("current (" + currentIndex + "): ", room.turn.current, "next (" + (currentIndex + 1) % playersLeft.length +"): ", playersLeft[(currentIndex + 1) % playersLeft.length].id)
     return playersLeft[(currentIndex + 1) % playersLeft.length].id;
 }
