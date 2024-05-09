@@ -159,7 +159,8 @@ io.on("connection", socket => {
 			const playerLives = MapToPlayerLives(roomData.players);
 			const startedGameData = {
 				playerLives: playerLives,
-				handSize: roomData.settings.handSize
+				handSize: roomData.settings.handSize,
+				turn: roomData.turn
 			}
 			io.to(roomID).emit("startedGame", startedGameData);
 			console.log("Started game")
@@ -192,6 +193,7 @@ io.on("connection", socket => {
 	socket.on("answerReview", (data) => {
 		// data.value (True = Correct answer, False = Wrong answer)
 		const roomID = PlayerRooms.get(socket.id);
+		const roomData = Rooms.get(roomID);
 		// check if there is more cards left and update hand
 		let updateHandVaule = updateHand(socket.id, roomID);
 		let winnerFound = false
@@ -210,7 +212,7 @@ io.on("connection", socket => {
 		}
 		if(!data.value){
 			let livesData = updateLives(socket.id, roomID)
-			const lifeUpdateData = MapToPlayerLives(Rooms.get(roomID).players);
+			const lifeUpdateData = MapToPlayerLives(roomData.players);
 			io.to(roomID).emit("lifeUpdate",lifeUpdateData);
 			if(livesData == "winner"){
 				socket.to(roomID).emit("foundWinner","lose");
@@ -219,8 +221,8 @@ io.on("connection", socket => {
 				winnerFound = true
 			}
 		}
-		socket.to(roomID).emit("switchRoles");
-		socket.emit("switchRoles", Rooms.get(roomID).players.get(socket.id).hand);
+		socket.to(roomID).emit("switchRoles", { turn: roomData.turn });
+		socket.emit("switchRoles", { turn: roomData.turn, hand: roomData.players.get(socket.id).hand });
 		if(winnerFound){
 			console.log("Room have been delete")
 			const players = Rooms.get(roomID).players
