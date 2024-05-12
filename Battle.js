@@ -70,7 +70,7 @@ function checkWinner(roomID, roomData, socket, io) {
                 if (multipleDraws) {
                     io.to(player.id).emit("foundWinner", "draw");
                 } else {
-                    io.to(player.id).emit("foundWinner", "win");
+                    io.to(player.id).emit("foundWinner", "won");
                 }
                 // Player lost
             } else {
