@@ -190,12 +190,10 @@ io.on("connection", socket => {
 
 	// Used when a user is done answering a question
 	socket.on("doneAnswering", () => {
-		// TODO: Flere spillere
 		const roomID = PlayerRooms.get(socket.id);
 		socket.to(roomID).emit("doneAnswering");
 	})
 
-	//TODO: Move some of this logic to Battle.js
 	socket.on("answerReview", (correctAnswer) => {
 		// correctAnswer (True = Correct answer, False = Wrong answer)
 		const roomID = PlayerRooms.get(socket.id);
