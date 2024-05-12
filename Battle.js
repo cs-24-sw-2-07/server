@@ -46,7 +46,7 @@ function checkWinner(roomID, roomData, socket, io) {
 
     // check if theres only one player left, declare that player as winner.
     if (players.filter(player => player.lives !== 0).length === 1) {
-        socket.emit("foundWinner", "win");
+        socket.emit("foundWinner", "won");
         socket.to(roomID).emit("foundWinner", "lose");
         return true;
     }
