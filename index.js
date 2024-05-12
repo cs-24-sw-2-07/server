@@ -3,7 +3,7 @@ import express from "express"
 import http from "http"
 import { Server } from "socket.io"
 import { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj, isUsernameValid, CheckPlayerDecks } from "./Lobby.js"
-import { removeCardFromHand, drawHand, drawCard, MapToPlayerLives, nextPlayer } from "./Battle.js";
+import { removeCardFromHand, drawHand, checkWinner, MapToPlayerLives, nextPlayer, switchRoles } from "./Battle.js";
 //import { domainToASCII } from "url"
 const app = express()
 const server = http.createServer(app)
@@ -209,55 +209,9 @@ io.on("connection", socket => {
 			io.to(roomID).emit("lifeUpdate", lifeUpdateData);
 		}
 
-		const players = [...roomData.players.values()];
-
-		// check if theres only one player left, declare that player as winner.
-		if(players.filter(player => player.lives !== 0).length === 1) {
-			socket.emit("foundWinner", "win");
-			socket.to(roomID).emit("foundWinner", "lose");
-			DeleteLobby(roomID, io);
-			return;
-		}
+		if(checkWinner(roomID, roomData, socket)) return DeleteLobby(roomID, io);
 		
-		// Draw card for player if any is left.
-		let player = Rooms.get(roomID).players.get(socket.id);
-		if(player.deck.cards.length > player.usedCards.length + player.hand.length){
-			let pickedCard = drawCard(player.usedCards, player.deck.cards.length, player.hand);
-			player.hand.push(pickedCard);
-		}
-
-		// If no cards left, give win to player with most lives, or end with draw for remaining players.
-		if(!players.some((player) => player.hand.length > 0)) {
-			const playersSorted = players.sort((a, b) => a.lives > b.lives);
-			const winLivesAmount = playersSorted[0].lives;
-			const multipleDraws = playersSorted[1].lives === winLivesAmount;
-			playersSorted.forEach(player => {
-				// Player Won / Draw
-				if (player.lives === winLivesAmount) {
-					if(multipleDraws) {
-						socket.to(player.id).emit("foundWinner", "draw");
-					} else {
-						socket.to(player.id).emit("foundWinner", "winner");
-					}
-				// Player lost
-				} else {
-					socket.to(player.id).emit("foundWinner", "lose");
-				}
-			})
-			return;
-		}
-
-		roomData.turn.current = roomData.turn.next;
-		roomData.turn.next = nextPlayer(roomData);
-
-		// if previous next player does not have any more lives, this should execute twice, such that previous next player doesn't become current player.
-		if(roomData.players.get(roomData.turn.current).lives === 0) {
-			roomData.turn.current = roomData.turn.next;
-			roomData.turn.next = nextPlayer(roomData);
-		}
-
-		socket.to(roomID).emit("switchRoles", { turn: roomData.turn });
-		socket.emit("switchRoles", { turn: roomData.turn, hand: roomData.players.get(socket.id).hand });
+		switchRoles(roomID, roomData, socket);
 	})
 });
 
