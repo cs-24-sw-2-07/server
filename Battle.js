@@ -19,23 +19,23 @@ function removeCardFromHand(playerID, usedIndex,roomID){
     roomPlayers.get(playerID).hand = [...updatedHand]
 }
 
-function updateLives(playerID, roomID){
-    const roomData = Rooms.get(roomID);
-    let oppPlayer;
-    //Find player that did not send socket event
-    for (const key of Rooms.get(roomID).players.keys()) {
-        if (playerID !== key) {
-            oppPlayer = key;
-            break;
-        }
-    }
-    roomData.players.get(oppPlayer).lives--;
-    let oppPlayerLives = roomData.players.get(oppPlayer).lives;
-    console.log(oppPlayerLives);
+function updateLives(roomData){
+    // let oppPlayer;
+    // //Find player that did not send socket event
+    // for (const key of roomData.players.keys()) {
+    //     if (playerID !== key) {
+    //         oppPlayer = key;
+    //         break;
+    //     }
+    // }
+    let wrongPlayer = roomData.players.get(roomData.turn.next);
+    wrongPlayer.lives--;
+    let oppPlayerLives = wrongPlayer.lives;
+    //console.log(oppPlayerLives);
     if(oppPlayerLives == 0){
         return "winner"
     }
-    return oppPlayerLives
+    return;// oppPlayerLives
 }
 
 function updateHand(playerID, roomID){
