@@ -40,13 +40,7 @@ function MapToPlayerLives(map) {
     return array;
 }
 
-function nextPlayer(room) {
-    let playersLeft = MapToPlayerLives(room.players).filter(player => player.lives !== 0);
-    let currentIndex = playersLeft.findIndex(player => room.turn.current === player.id);
-    return playersLeft[(currentIndex + 1) % playersLeft.length].id;
-}
-
-function checkWinner(roomID, roomData, socket) {
+function checkWinner(roomID, roomData, socket, io) {
 
     const players = [...roomData.players.values()];
 
@@ -65,21 +59,22 @@ function checkWinner(roomID, roomData, socket) {
     }
 
     // If no cards left, give win to player with most lives, or end with draw for remaining players.
-    if (!players.some((player) => player.hand.length > 0)) {
-        const playersSorted = players.sort((a, b) => a.lives > b.lives);
+    if (!players.some((player) => player.lives > 0 && player.hand.length > 0)) {
+        // Sort players descending by lives.
+        const playersSorted = players.sort((a, b) => b.lives - a.lives);
         const winLivesAmount = playersSorted[0].lives;
         const multipleDraws = playersSorted[1].lives === winLivesAmount;
         playersSorted.forEach(player => {
             // Player Won / Draw
             if (player.lives === winLivesAmount) {
                 if (multipleDraws) {
-                    socket.to(player.id).emit("foundWinner", "draw");
+                    io.to(player.id).emit("foundWinner", "draw");
                 } else {
-                    socket.to(player.id).emit("foundWinner", "winner");
+                    io.to(player.id).emit("foundWinner", "win");
                 }
                 // Player lost
             } else {
-                socket.to(player.id).emit("foundWinner", "lose");
+                io.to(player.id).emit("foundWinner", "lose");
             }
         })
         return true;
@@ -88,13 +83,22 @@ function checkWinner(roomID, roomData, socket) {
     return false;
 }
 
+function nextPlayer(room) {
+    let playersLeft = MapToPlayerLives(room.players).filter(player => player.lives !== 0);
+    let currentIndex = playersLeft.findIndex(player => room.turn.current === player.id);
+    return playersLeft[(currentIndex + 1) % playersLeft.length].id;
+}
+
 function switchRoles(roomID, roomData, socket) {
     // Assign new player to select card and new player to answer.
-    roomData.turn.current = roomData.turn.next;
-    roomData.turn.next = nextPlayer(roomData);
-
-    // if previous next player does not have any more lives, this should execute twice, such that previous next player doesn't become current player.
-    if(roomData.players.get(roomData.turn.current).lives === 0) {
+    // Check if next player is alive, else they should be excluded.
+    if(roomData.players.get(roomData.turn.next).lives === 0) {
+        // Set next player to a player alive.
+        roomData.turn.next = nextPlayer(roomData);
+        // Shift players alive
+        roomData.turn.current = roomData.turn.next;
+        roomData.turn.next = nextPlayer(roomData);
+    } else {
         roomData.turn.current = roomData.turn.next;
         roomData.turn.next = nextPlayer(roomData);
     }

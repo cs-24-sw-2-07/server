@@ -159,7 +159,6 @@ io.on("connection", socket => {
 
 			roomData.turn.current = socket.id;
 			roomData.turn.next = nextPlayer(roomData);
-			console.log("TURN DATA", roomData.turn);
 
 			const playerLives = MapToPlayerLives(roomData.players);
 			const startedGameData = {
@@ -209,7 +208,7 @@ io.on("connection", socket => {
 			io.to(roomID).emit("lifeUpdate", lifeUpdateData);
 		}
 
-		if(checkWinner(roomID, roomData, socket)) return DeleteLobby(roomID, io);
+		if(checkWinner(roomID, roomData, socket, io)) return DeleteLobby(roomID, io);
 		
 		switchRoles(roomID, roomData, socket);
 	})
