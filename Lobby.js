@@ -145,7 +145,7 @@ function JoinLobby(PlayerObj, roomID, socket){
     socket.join(roomID);
     
     const Players = Rooms.get(roomID).players; 
-    const Player = CreatePlayer(PlayerObj.name, false); 
+    const Player = CreatePlayer(PlayerObj.name, false, socket.id); 
 
     PlayerRooms.set(socket.id, roomID);
     Players.set(socket.id, Player);
@@ -199,8 +199,9 @@ function ChangeDeckState(deck, playerID, Room) {
  * @param {*} flag to set whether the user is host or not 
  * @returns the object
  */
-function CreatePlayer(username, flag) {
+function CreatePlayer(username, flag, socketid) {
     return {
+        "id": socketid,
         "name": username, 
         "deck": null,
         "ready": false,
