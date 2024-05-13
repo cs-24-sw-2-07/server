@@ -2,13 +2,21 @@ import { PlayerRooms, Rooms } from "./index.js";
 export { drawHand, removeCardFromHand, checkWinner, MapToPlayerLives, nextPlayer, switchRoles };
 
 //make a starting hand
-function drawHand(deckSize, handSize) {
-    let hand = new Set();
-    while (hand.size < handSize) {
-        let pickedCard = Math.floor(Math.random() * deckSize);
-        hand.add(pickedCard);
+function drawHand(deck, handSize) {
+    const avgDeckRating = deck.cards.reduce((ratingSum, card) => ratingSum + card.rating, 0) / deck.cards.length;
+    let randomRating = (avgDeckRating + (Math.random() * 2) - 1)
+    randomRating = Math.min(Math.max(randomRating, 1), 5);     
+    const sortFunc = (a, b) => Math.abs(randomRating - b.rating) - Math.abs(randomRating - a.rating);
+    console.log("random Rating", randomRating);
+    const cards = deck.cards.sort(sortFunc);
+    console.log(cards);
+    
+    let hand = [];
+    for(let i = 0; i < handSize; i++){
+        hand.push(cards.pop()); 
     }
-    return hand;
+    console.log(hand);
+    return hand; 
 }
 
 function removeCardFromHand(playerID, usedIndex, roomID) {

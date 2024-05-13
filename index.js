@@ -173,7 +173,7 @@ io.on("connection", (socket) => {
 
       //Give each player a starting hand
       let hand = drawHand(
-        roomData.settings.deckSize,
+        roomData.players.get(socket.id).deck,
         roomData.settings.handSize,
       );
       // ! TODO lave så vært deck indebære decksize antal kort
