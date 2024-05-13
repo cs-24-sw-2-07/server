@@ -7,22 +7,19 @@ function drawHand(deck, handSize) {
     //randomize the rating so that it can vary between 1 and -1 from original value
     let randomRating = (avgDeckRating + (Math.random() * 2) - 1)
     //make sure rating does not become bigger than 5 or smaller than 1
-    randomRating = Math.min(Math.max(randomRating, 1), 5);     
+    randomRating = Math.min(Math.max(randomRating, 1), 5);
 
-    const cards = deck.cards.map((card,index) => ({...card, index: index}))
+    //Makes an array of cards adding the index from the deck
+    const cards = deck.cards.map((card,index) => ({...card, index: index}));
 
-    //find cards that best match
+    //Sorts the cards after the randomized rating that puts the cards, which rating closes matches the random rating, at the end
     const sortFunc = (a, b) => Math.abs(randomRating - b.rating) - Math.abs(randomRating - a.rating);
-    console.log("random Rating", randomRating);
-
     const cardsSorted = cards.sort(sortFunc);
-    console.log(cardsSorted);
-    
+    //The indexes of the cards that closes match the random rating are added to the hand array. 
     let hand = [];
     for(let i = 0; i < handSize; i++){
         hand.push(cardsSorted.pop().index); 
     }
-    console.log(hand);
     return hand; 
 }
 
@@ -37,37 +34,38 @@ function removeCardFromHand(playerID, usedIndex, roomID) {
 // draw a new card
 function drawCard(oppPerformance, deck, usedCards, handCards, maxLives) {
     let newCardRating;
+    //The amount life can vary --> So, if max lives is 3, then it can vary with -2, -1, 0, 1, 2
     const lifeVariance = maxLives - 1;
-
+    //check if the new card on the hand should be harder or easier
     if(oppPerformance > 0) {
         const avgLives = Math.ceil((lifeVariance) / 2); 
         if(oppPerformance > avgLives){
-            newCardRating = lifeVariance - oppPerformance;
+            newCardRating = (lifeVariance + oppPerformance) + maxLives;
         }
         else{
-            newCardRating = avgLives - oppPerformance;
+            newCardRating = (avgLives + oppPerformance) + maxLives;
         }
     }
     else if (oppPerformance < 0) {
         const avgLives = -1 * Math.ceil((lifeVariance) / 2); 
+        console.log(avgLives);
         if (oppPerformance >= avgLives) {
-            newCardRating = avgLives - oppPerformance;
+            newCardRating = (avgLives + oppPerformance) + maxLives;
         } else {
-            newCardRating = lifeVariance - oppPerformance;
+            newCardRating = (lifeVariance + oppPerformance) + maxLives;
         }
     }
     else {
         newCardRating = 3; 
     }
+    const cards = deck.cards.map((card,index) => ({...card, index: index}))
 
-    const unusedCards = deck.filter(card => !(handCards.includes(card) || usedCards.includes(card))); 
+    const unusedCards = cards.filter(card => !(handCards.includes(card.index) || usedCards.includes(card.index))); 
     const candidates = unusedCards.filter(card => card.rating === Math.ceil(newCardRating) || card.rating === Math.floor(newCardRating));
-    
-    if(candidates.length === 0) { //TODO: Evt. add logik her
-       return unusedCards[Math.floor(Math.random()*unusedCards.length)];
+    if(candidates.length === 0) {
+       return unusedCards[Math.floor(Math.random()*unusedCards.length)].index;
     }
-
-    return candidates[Math.floor(Math.random()*candidates.length)];    
+    return candidates[Math.floor(Math.random()*candidates.length)].index;    
 }
 
 function MapToPlayerLives(map) {
