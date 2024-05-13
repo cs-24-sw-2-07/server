@@ -1,4 +1,4 @@
-import { Rooms } from "./index.js";
+import { PlayerRooms, Rooms } from "./index.js";
 export { drawHand, removeCardFromHand, checkWinner, MapToPlayerLives, nextPlayer, switchRoles };
 
 //make a starting hand
@@ -20,12 +20,39 @@ function removeCardFromHand(playerID, usedIndex, roomID) {
 }
 
 // draw a new card
-function drawCard(usedCards, deckSize, handCards) {
-    let pickedCard = -1;
-    do {
-        pickedCard = Math.floor(Math.random() * deckSize);
-    } while (usedCards.includes(pickedCard) || handCards.includes(pickedCard))
-    return pickedCard;
+function drawCard(oppPerformance, deck, usedCards, handCards, maxLives) {
+    let newCardRating;
+    const lifeVariance = maxLives - 1;
+
+    if(oppPerformance > 0) {
+        const avgLives = Math.ceil((lifeVariance) / 2); 
+        if(oppPerformance > avgLives){
+            newCardRating = lifeVariance - oppPerformance;
+        }
+        else{
+            newCardRating = avgLives - oppPerformance;
+        }
+    }
+    else if (oppPerformance < 0) {
+        const avgLives = -1 * Math.ceil((lifeVariance) / 2); 
+        if (oppPerformance >= avgLives) {
+            newCardRating = avgLives - oppPerformance;
+        } else {
+            newCardRating = lifeVariance - oppPerformance;
+        }
+    }
+    else {
+        newCardRating = 3; 
+    }
+
+    const unusedCards = deck.filter(card => !(handCards.includes(card) || usedCards.includes(card))); 
+    const candidates = unusedCards.filter(card => card.rating === Math.ceil(newCardRating) || card.rating === Math.floor(newCardRating));
+    
+    if(candidates.length === 0) { //TODO: Evt. add logik her
+       return unusedCards[Math.floor(Math.random()*unusedCards.length)];
+    }
+
+    return candidates[Math.floor(Math.random()*candidates.length)];    
 }
 
 function MapToPlayerLives(map) {
@@ -54,7 +81,8 @@ function checkWinner(roomID, roomData, socket, io) {
     // Draw card for player if any is left.
     let player = Rooms.get(roomID).players.get(socket.id);
     if (player.deck.cards.length > player.usedCards.length + player.hand.length) {
-        let pickedCard = drawCard(player.usedCards, player.deck.cards.length, player.hand);
+        const oppPerformance = computeOppPerformance(roomData);
+        let pickedCard = drawCard(oppPerformance, player.deck, player.usedCards, player.hand, roomData.settings.life);
         player.hand.push(pickedCard);
     }
 
@@ -103,4 +131,14 @@ function switchRoles(roomID, roomData, socket) {
 
     socket.to(roomID).emit("switchRoles", { turn: roomData.turn });
     socket.emit("switchRoles", { turn: roomData.turn, hand: roomData.players.get(socket.id).hand });
+}
+
+function computeOppPerformance(roomData) {
+    const opponentID = roomData.turn.next; 
+    const players = Rooms.get(PlayerRooms.get(opponentID)).players; 
+    const opponent = players.get(opponentID);
+
+    const playerArr = MapToPlayerLives(players);
+    const avgPerformance = playerArr.reduce((sum, player) => sum + player.lives, 0) / playerArr.length; 
+    return opponent.lives - avgPerformance;
 }
