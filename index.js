@@ -234,6 +234,7 @@ io.on("connection", (socket) => {
       roomData.players.get(roomData.turn.next).lives--;
       const lifeUpdateData = MapToPlayerLives(roomData.players);
       io.to(roomID).emit("lifeUpdate", lifeUpdateData);
+      io.to(roomData.turn.next).emit("wrongAnswered");
     }
 
     if (checkWinner(roomID, roomData, socket, io)) {
