@@ -14,6 +14,7 @@ import {
   MapToArrayObj,
   isUsernameValid,
   CheckPlayerDecks,
+  CalculateMaxDeckSize
 } from "./Lobby.js";
 import {
   removeCardFromHand,
@@ -187,6 +188,9 @@ io.on("connection", (socket) => {
 
       roomData.turn.current = socket.id;
       roomData.turn.next = nextPlayer(roomData);
+
+      // Calculate the minimum amount of cards present in all decks
+      roomData.maxDeckSize = CalculateMaxDeckSize(roomData);
 
       const playerLives = MapToPlayerLives(roomData.players);
       const startedGameData = {
