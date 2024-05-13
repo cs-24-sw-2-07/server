@@ -206,8 +206,10 @@ io.on("connection", socket => {
 			io.to(roomID).emit("lifeUpdate", lifeUpdateData);
 		}
 
-		if(checkWinner(roomID, roomData, socket, io)) return DeleteLobby(roomID, io);
-		
+		if(checkWinner(roomID, roomData, socket, io)) {
+		  return DeleteLobby(roomID, io);
+		}
+
 		switchRoles(roomID, roomData, socket);
 	})
 });
