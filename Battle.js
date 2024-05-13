@@ -4,16 +4,23 @@ export { drawHand, removeCardFromHand, checkWinner, MapToPlayerLives, nextPlayer
 //make a starting hand
 function drawHand(deck, handSize) {
     const avgDeckRating = deck.cards.reduce((ratingSum, card) => ratingSum + card.rating, 0) / deck.cards.length;
+    //randomize the rating so that it can vary between 1 and -1 from original value
     let randomRating = (avgDeckRating + (Math.random() * 2) - 1)
+    //make sure rating does not become bigger than 5 or smaller than 1
     randomRating = Math.min(Math.max(randomRating, 1), 5);     
+
+    const cards = deck.cards.map((card,index) => ({...card, index: index}))
+
+    //find cards that best match
     const sortFunc = (a, b) => Math.abs(randomRating - b.rating) - Math.abs(randomRating - a.rating);
     console.log("random Rating", randomRating);
-    const cards = deck.cards.sort(sortFunc);
-    console.log(cards);
+
+    const cardsSorted = cards.sort(sortFunc);
+    console.log(cardsSorted);
     
     let hand = [];
     for(let i = 0; i < handSize; i++){
-        hand.push(cards.pop()); 
+        hand.push(cardsSorted.pop().index); 
     }
     console.log(hand);
     return hand; 
