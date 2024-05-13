@@ -1,88 +1,106 @@
 import { Rooms } from "./index.js";
-export { updateLives, drawHand, updateHand, removeCardFromHand, drawCard };
+export { drawHand, removeCardFromHand, checkWinner, MapToPlayerLives, nextPlayer, switchRoles };
 
 //make a starting hand
-function drawHand(deckSize, handSize){
+function drawHand(deckSize, handSize) {
     let hand = new Set();
-    while(hand.size < handSize){
-        let pickedCard = Math.floor(Math.random()*deckSize);
+    while (hand.size < handSize) {
+        let pickedCard = Math.floor(Math.random() * deckSize);
         hand.add(pickedCard);
     }
     return hand;
 }
 
-function removeCardFromHand(playerID, usedIndex,roomID){
+function removeCardFromHand(playerID, usedIndex, roomID) {
     let roomPlayers = Rooms.get(roomID).players;
     let updatedHand = [...roomPlayers.get(playerID).hand];
     roomPlayers.get(playerID).usedCards.push(updatedHand[usedIndex]);
-    updatedHand.splice(usedIndex,1);
+    updatedHand.splice(usedIndex, 1);
     roomPlayers.get(playerID).hand = [...updatedHand]
 }
 
-function updateLives(playerID, roomID){   
-    const roomData = Rooms.get(roomID);
-    let oppPlayer;
-    //Find player that did not send socket event
-    for (const key of Rooms.get(roomID).players.keys()) {
-        if (playerID !== key) {
-            oppPlayer = key;
-            break;
-        }
-    } 
-    roomData.players.get(oppPlayer).lives--;
-    let oppPlayerLives = roomData.players.get(oppPlayer).lives;
-    console.log(oppPlayerLives);
-    if(oppPlayerLives == 0){
-        return "winner"
-    }
-    return oppPlayerLives
-}
-
-function updateHand(playerID, roomID){
-    let player = Rooms.get(roomID).players.get(playerID);
-    //if the player's hand is empty and have recieved notification from the other player => find winner
-    if(player.hand.length === 0 && Rooms.get(roomID).outOfCardsNotify){
-        console.log("DONE")
-        //Finds the other player, so we can calculate who won
-        let oppPlayer;
-        for (const key of Rooms.get(roomID).players.keys()) {
-            if (playerID !== key) {
-                oppPlayer = key;
-              break;
-            }
-          }    
-
-        let oppPlayerLives = Rooms.get(roomID).players.get(oppPlayer).lives
-        console.log("lives for players: ", oppPlayerLives, " ", player.lives)
-        if(oppPlayerLives < player.lives){
-            return "winner"
-        } else if(oppPlayerLives > player.lives){
-            return "lost"
-        } else {
-            return "draw"
-        }
-    } else if(player.hand.length === 0){
-        console.log("send notification")
-        Rooms.get(roomID).outOfCardsNotify=true;
-        console.log(Rooms.get(roomID).outOfCardsNotify)
-    }
-
-    //if there are more cards left in the deck => draw new card
-    if(player.deck.cards.length > player.usedCards.length + player.hand.length){
-        console.log("draw card")
-        let pickedCard = drawCard(player.usedCards, player.deck.cards.length, player.hand);
-        player.hand.push(pickedCard);
-    }
-}
-
-//draw a new card
-function drawCard(usedCards, deckSize, handCards){
+// draw a new card
+function drawCard(usedCards, deckSize, handCards) {
     let pickedCard = -1;
-    do{
-        pickedCard = Math.floor(Math.random()*deckSize);
-    }while(usedCards.includes(pickedCard) || handCards.includes(pickedCard))
+    do {
+        pickedCard = Math.floor(Math.random() * deckSize);
+    } while (usedCards.includes(pickedCard) || handCards.includes(pickedCard))
     return pickedCard;
 }
 
+function MapToPlayerLives(map) {
+    let array = [];
+    for (const [key, value] of map.entries()) {
+        array.push({
+            name: value.name,
+            id: key,
+            lives: value.lives
+        });
+    }
+    return array;
+}
 
+function checkWinner(roomID, roomData, socket, io) {
 
+    const players = [...roomData.players.values()];
+
+    // check if theres only one player left, declare that player as winner.
+    if (players.filter(player => player.lives !== 0).length === 1) {
+        socket.emit("foundWinner", "won");
+        socket.to(roomID).emit("foundWinner", "lose");
+        return true;
+    }
+
+    // Draw card for player if any is left.
+    let player = Rooms.get(roomID).players.get(socket.id);
+    if (player.deck.cards.length > player.usedCards.length + player.hand.length) {
+        let pickedCard = drawCard(player.usedCards, player.deck.cards.length, player.hand);
+        player.hand.push(pickedCard);
+    }
+
+    // If no cards left, give win to player with most lives, or end with draw for remaining players.
+    if (!players.some((player) => player.lives > 0 && player.hand.length > 0)) {
+        // Sort players descending by lives.
+        const playersSorted = players.sort((a, b) => b.lives - a.lives);
+        const winLivesAmount = playersSorted[0].lives;
+        const multipleDraws = playersSorted[1].lives === winLivesAmount;
+        playersSorted.forEach(player => {
+            // Player Won / Draw
+            if (player.lives === winLivesAmount) {
+                if (multipleDraws) {
+                    io.to(player.id).emit("foundWinner", "draw");
+                } else {
+                    io.to(player.id).emit("foundWinner", "won");
+                }
+                // Player lost
+            } else {
+                io.to(player.id).emit("foundWinner", "lose");
+            }
+        })
+        return true;
+    }
+
+    return false;
+}
+
+function nextPlayer(room) {
+    let playersLeft = MapToPlayerLives(room.players).filter(player => player.lives !== 0);
+    let currentIndex = playersLeft.findIndex(player => room.turn.current === player.id);
+    return playersLeft[(currentIndex + 1) % playersLeft.length].id;
+}
+
+function switchRoles(roomID, roomData, socket) {
+    // Assign new player to select card and new player to answer.
+
+    // Check if current next player is alive, else they should be skipped.
+    if(roomData.players.get(roomData.turn.next).lives === 0) {
+        // Set next player to a player alive.
+        roomData.turn.next = nextPlayer(roomData);
+    }
+    // Shift players alive
+    roomData.turn.current = roomData.turn.next;
+    roomData.turn.next = nextPlayer(roomData);
+
+    socket.to(roomID).emit("switchRoles", { turn: roomData.turn });
+    socket.emit("switchRoles", { turn: roomData.turn, hand: roomData.players.get(socket.id).hand });
+}
