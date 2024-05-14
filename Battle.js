@@ -58,10 +58,13 @@ function drawCard(oppPerformance, deck, usedCards, handCards, maxLives) {
     else {
         newCardRating = 3; 
     }
-    const cards = deck.cards.map((card,index) => ({...card, index: index}))
-
+    //make an array where each card also has their index as a key/value pair
+    const cards = deck.cards.map((card,index) => ({...card, index: index}));
+    //find all the cards that have not been played
     const unusedCards = cards.filter(card => !(handCards.includes(card.index) || usedCards.includes(card.index))); 
-    const candidates = unusedCards.filter(card => card.rating === Math.ceil(newCardRating) || card.rating === Math.floor(newCardRating));
+    //find cards that match the rating we want
+    const candidates = unusedCards.filter(card => card.rating === Math.ceil(newCardRating) 
+                                                || card.rating === Math.floor(newCardRating));
     if(candidates.length === 0) {
        return unusedCards[Math.floor(Math.random()*unusedCards.length)].index;
     }
