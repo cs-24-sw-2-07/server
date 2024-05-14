@@ -14,6 +14,7 @@ import {
   MapToArrayObj,
   isUsernameValid,
   CheckPlayerDecks,
+  CalculateMaxDeckSize
 } from "./Lobby.js";
 import {
   removeCardFromHand,
@@ -50,15 +51,21 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log(`a user with the id: ${socket.id} has disconnected`);
     if (PlayerRooms.has(socket.id)) {
-      if (Rooms.get(PlayerRooms.get(socket.id)).players.get(socket.id).host) {
-        //Does the player have host status
-        const roomID = PlayerRooms.get(socket.id);
-        socket.to(roomID).emit("leaveLobby");
+      const roomID = PlayerRooms.get(socket.id);
+      const roomData = Rooms.get(roomID);
+      //Does the player have host status
+      if (roomData.players.get(socket.id).host) {
+        socket.to(roomID).emit("LeaveLobby");
         DeleteLobby(roomID, io);
       } else {
-        const roomID = PlayerRooms.get(socket.id);
-        const players = LeaveLobby(socket, roomID);
-        socket.to(roomID).emit("playerHandler", players);
+        // If game has already started, disconnect all clients from game, also if not a host.
+        if(roomData.gameStarted) {
+          socket.to(roomID).emit("LeaveLobby");
+          DeleteLobby(roomID, io);
+        } else {
+          const players = LeaveLobby(socket, roomID);
+          socket.to(roomID).emit("playerHandler", players);
+        }
       }
     }
   });
@@ -105,7 +112,7 @@ io.on("connection", (socket) => {
   socket.on("joinLobby", (Joined) => {
     const roomID = `/${Joined.id}`;
     const Room = Rooms.get(roomID);
-    if (Room && Room.players.size < Room.settings.lobbySize) {
+    if (Room && Room.players.size < Room.settings.lobbySize && !Room.gameStarted) {
       if (isUsernameValid(Joined.name)) {
         const playersArr = JoinLobby(Joined, roomID, socket);
         socket.to(roomID).emit("playerHandler", playersArr);
@@ -121,7 +128,7 @@ io.on("connection", (socket) => {
       } else {
         socket.emit("invalidUsername");
       }
-    } else if (Room) {
+    } else if (Room && !Room.gameStarted) {
       socket.emit("RoomFull");
     } else {
       socket.emit("roomNotExist");
@@ -188,6 +195,11 @@ io.on("connection", (socket) => {
       roomData.turn.current = socket.id;
       roomData.turn.next = nextPlayer(roomData);
 
+      // Calculate the minimum amount of cards present in all decks
+      roomData.maxDeckSize = CalculateMaxDeckSize(roomData);
+
+      roomData.gameStarted = true;
+
       const playerLives = MapToPlayerLives(roomData.players);
       const startedGameData = {
         playerLives: playerLives,
@@ -235,6 +247,7 @@ io.on("connection", (socket) => {
       roomData.players.get(roomData.turn.next).lives--;
       const lifeUpdateData = MapToPlayerLives(roomData.players);
       io.to(roomID).emit("lifeUpdate", lifeUpdateData);
+      io.to(roomData.turn.next).emit("wrongAnswered");
     }
 
     if (checkWinner(roomID, roomData, socket, io)) {

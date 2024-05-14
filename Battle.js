@@ -94,7 +94,7 @@ function checkWinner(roomID, roomData, socket, io) {
         return true;
     }
 
-    // Draw card for player if any is left.
+    // Draw card for player if any is left and their played cards does not exceed the maxDeckSize for the room.
     let player = Rooms.get(roomID).players.get(socket.id);
     if (player.deck.cards.length > player.usedCards.length + player.hand.length) {
         const oppPerformance = computeOppPerformance(roomData);
