@@ -20,7 +20,7 @@ function CreateLobby(socket, displayName) {
     // Sets up roomObj and pushes to room map
     const settingsJson = {
         "deckSize": 15,
-        "handSize" : 5,
+        "handSize": 5,
         "life": 3,
         "lobbySize": 2
     };
@@ -43,8 +43,8 @@ function CreateLobbyID() {
     let id;
     do {
         id = "";
-        for(let i=0; i<6; i++){
-            id += Math.floor(Math.random()*10);
+        for (let i = 0; i < 6; i++) {
+            id += Math.floor(Math.random() * 10);
         }
     } while (Rooms.get(`/${id}`));
     return id;
@@ -57,7 +57,7 @@ function CreateLobbyID() {
  * @param {*} Settings object containing the settings
  * @returns the room object
  */
-function RoomStateObj(socket, username, Settings){
+function RoomStateObj(socket, username, Settings) {
     // The lobby state is added to the rooms map as a value to the given room id
     let LobbyStateObj = {
         "players": new Map(),
@@ -75,7 +75,7 @@ function RoomStateObj(socket, username, Settings){
  */
 //change Settings
 function ChangeSettings(ChangeObj, roomID) {
-    if(!isSettingValid(ChangeObj, roomID)) {
+    if (!isSettingValid(ChangeObj, roomID)) {
         return false;
     }
     const setting = ChangeObj.key;
@@ -89,10 +89,10 @@ function ChangeSettings(ChangeObj, roomID) {
  * @param {*} roomID Uses to read players id
  * @param {*} io Allows for access to the overall socket connection
  */
-function DeleteLobby(roomID, io){
+function DeleteLobby(roomID, io) {
     //Deletes the key-value pairs from the PlayerRooms map
     const players = Rooms.get(roomID).players
-    for(const [id,] of players.entries()) {
+    for (const [id,] of players.entries()) {
         PlayerRooms.delete(id);
     }
 
@@ -106,7 +106,7 @@ function DeleteLobby(roomID, io){
  * @returns true or false depending on weather the the conditions for the game to start is met
  */
 
-function ShouldStartGame(roomID){
+function ShouldStartGame(roomID) {
     const players = Rooms.get(roomID).players;
     if (players.size < 2) {
         return false;
@@ -126,9 +126,9 @@ function ShouldStartGame(roomID){
  * @param {*} roomID is the id for the room
  * @returns an object
  */
-function PlayerReady(socketID, roomID){
+function PlayerReady(socketID, roomID) {
     const Room = Rooms.get(roomID);
-    const Player= Room.players.get(socketID);
+    const Player = Room.players.get(socketID);
 
     Player.ready = Player.deck !== null && !Player.ready;
     return MapToArrayObj(Room.players);
@@ -140,7 +140,7 @@ function PlayerReady(socketID, roomID){
  * @param {*} PlayerObj Holds the players username
  * @param {*} socket Holds the players socket id.
  */
-function JoinLobby(PlayerObj, roomID, socket){
+function JoinLobby(PlayerObj, roomID, socket) {
     socket.join(roomID);
 
     const Players = Rooms.get(roomID).players;
@@ -160,7 +160,7 @@ function JoinLobby(PlayerObj, roomID, socket){
  * @param {*} Room puts the players id into a map.
  * @param {*} playersleftArr creates a new array with the updated map.
  */
-function LeaveLobby(socket, roomID){
+function LeaveLobby(socket, roomID) {
     //Delete the player from the PlayerRoom map
     PlayerRooms.delete(socket.id);
 
@@ -187,7 +187,7 @@ function ChangeDeckState(deck, playerID, Room) {
     }
     const player = Room.players.get(playerID);
     player.deck = deck;
-    if(player.host && !player.ready) {
+    if (player.host && !player.ready) {
         player.ready = true;
     }
     return true;
@@ -217,7 +217,7 @@ function CreatePlayer(username, flag, socketid) {
  */
 function MapToArrayObj(map) {
     let array = [];
-    for(const [key, value] of map.entries()) {
+    for (const [key, value] of map.entries()) {
         array.push({
             name: value.name,
             ready: value.ready,
@@ -236,7 +236,7 @@ function MapToArrayObj(map) {
 function isSettingValid(SettingObj, roomID) {
     const setting = SettingObj.key;
     const settings = Rooms.get(roomID).settings;
-    switch(setting) {
+    switch (setting) {
         case "deckSize":
             return SettingObj[setting] >= 5;
         case "handSize":
@@ -251,7 +251,7 @@ function isSettingValid(SettingObj, roomID) {
 }
 
 function isUsernameValid(username) {
-    if(username.length < 2) {
+    if (username.length < 2) {
         return false;
     }
     return true;
@@ -261,7 +261,7 @@ function CheckPlayerDecks(roomID, settings, setting) {
     const players = Rooms.get(roomID).players;
     let playersNotAccepted = [];
     for (const [id, playerData] of players.entries()) {
-        if(playerData.deck !== null && playerData.deck.cards.length < settings[setting]) {
+        if (playerData.deck !== null && playerData.deck.cards.length < settings[setting]) {
             playerData.ready = false;
             playerData.deck = null;
             playersNotAccepted.push(id);
@@ -272,7 +272,8 @@ function CheckPlayerDecks(roomID, settings, setting) {
 
 // Calculate the max deck size based on the players in the room
 function CalculateMaxDeckSize(roomData) {
-  return Math.min([...roomData.players.values()].map(player => player.deck.cards.length));
+    let maxCards = Math.min(...[...roomData.players.values()].map(player => player.deck.cards.length)); //Uses ...[] because math.min does not take an array, so ...[] splits it into indivual values
+    return maxCards
 }
 
 
