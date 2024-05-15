@@ -183,7 +183,7 @@ io.on("connection", (socket) => {
         roomData.settings.deckSize,
         roomData.settings.handSize,
       );
-      // ! TODO lave så vært deck indebære decksize antal kort
+
       //give players correct information
       for (let [playerid, player] of roomData.players.entries()) {
         player.lives = lifeAmount;
