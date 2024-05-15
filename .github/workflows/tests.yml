@@ -7,7 +7,7 @@
 # More details at https://github.com/eslint/eslint
 # and https://eslint.org
 
-name: Jest
+name: Vitest
 
 on:
   push:
@@ -17,7 +17,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  eslint:
+  vitest:
     name: Run unit tests
     runs-on: ubuntu-latest
     permissions:
@@ -28,10 +28,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Jest
+      - name: Install Vitest
         run: |
-          npm install jest
+          npm install vitest
 
-      - name: Run Jest
+      - name: Run Vitest
         run: npm run test
         continue-on-error: false

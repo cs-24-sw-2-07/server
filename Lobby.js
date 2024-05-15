@@ -1,6 +1,6 @@
 //import path from "path";
 import { Rooms, PlayerRooms } from "./index.js";
-export { CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj, isUsernameValid, CheckPlayerDecks, CalculateMaxDeckSize };
+export { CreateLobbyID, CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj, isUsernameValid, CheckPlayerDecks, CalculateMaxDeckSize };
 
 //* =================================================== host lobby =============================================================== *\\
 /**
@@ -111,7 +111,7 @@ function ShouldStartGame(roomID){
     if (players.size < 2) {
         return false;
     }
-    for (const player of players) {
+    for (const player of players.values()) {
         if (player.ready === false) {
             return false;
         }
