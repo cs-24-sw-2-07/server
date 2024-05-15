@@ -132,9 +132,8 @@ function nextPlayer(room) {
     return playersLeft[(currentIndex + 1) % playersLeft.length].id;
 }
 
+// Assign new player to select card and new player to answer.
 function switchRoles(roomID, roomData, socket) {
-    // Assign new player to select card and new player to answer.
-
     // Check if current next player is alive, else they should be skipped.
     if (roomData.players.get(roomData.turn.next).lives === 0) {
         // Set next player to a player alive.
