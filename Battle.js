@@ -34,12 +34,9 @@ function removeCardFromHand(playerID, usedIndex, roomID) {
 // draw a new card
 function drawCard(oppPerformance, deck, usedCards, handCards, maxLives) {
     let newCardRating = new Array(2);
-    //The amount life can vary --> So, if max lives is 3, then it can vary with -2, -1, 0, 1, 2
-    const lifeVariance = maxLives - 1;
     //check if the new card on the hand should be harder or easier
-    if(oppPerformance >= 0) {
-        // The floored number between lifevariance and 0. 
-        const middlePerformance = Math.floor((lifeVariance) / 2); 
+    if(oppPerformance >= 0) { 
+        const middlePerformance = maxLives / 2; 
         if(oppPerformance >= middlePerformance){
             newCardRating[0] = 5;
             newCardRating[1] = 4;
@@ -49,8 +46,8 @@ function drawCard(oppPerformance, deck, usedCards, handCards, maxLives) {
             newCardRating[1] = 3;
         }
     }
-    else if (oppPerformance < 0) {
-        const middlePerformance = -1 * Math.floor((lifeVariance) / 2);
+    else {
+        const middlePerformance = -1 * (maxLives / 2);
         if (oppPerformance > middlePerformance) {
             newCardRating[0] = 3;
             newCardRating[1] = 2;
