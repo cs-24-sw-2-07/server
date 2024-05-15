@@ -33,11 +33,11 @@ function removeCardFromHand(playerID, usedIndex, roomID) {
 
 // draw a new card
 function drawCard(oppPerformance, deck, usedCards, handCards, maxLives) {
-    let newCardRating = [3, 3];
+    let newCardRating = new Array(2);
     //The amount life can vary --> So, if max lives is 3, then it can vary with -2, -1, 0, 1, 2
     const lifeVariance = maxLives - 1;
     //check if the new card on the hand should be harder or easier
-    if(oppPerformance > 0) {
+    if(oppPerformance >= 0) {
         // The floored number between lifevariance and 0. 
         const middle = Math.floor((lifeVariance) / 2); 
         if(oppPerformance >= middle){
@@ -160,7 +160,7 @@ function computeOppPerformance(roomData, playerID) {
 
     const playerArr = MapToPlayerLives(players);
     const avgPerformance = playerArr.reduce((sum, player) => sum + player.lives, 0) / playerArr.length;
-    
+
     // The opponents performance is based on difference from you and the difference from the average 
     return (opponent.lives - player.lives) + (opponent.lives - avgPerformance);
 }
