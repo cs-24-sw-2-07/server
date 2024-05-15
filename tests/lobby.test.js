@@ -134,8 +134,6 @@ describe("lobby functions", () => {
         ChangeDeckState(deck, socket2.id, Rooms.get(roomID));
         PlayerReady(socket2.id, roomID);
 
-        console.log(Rooms.get(roomID));
-
         expect(ShouldStartGame(roomID)).toBe(true);
     });
 
