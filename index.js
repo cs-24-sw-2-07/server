@@ -59,7 +59,7 @@ io.on("connection", (socket) => {
         DeleteLobby(roomID, io);
       } else {
         // If game has already started, disconnect all clients from game, also if not a host.
-        if(roomData.gameStarted) {
+        if (roomData.gameStarted) {
           socket.to(roomID).emit("LeaveLobby");
           DeleteLobby(roomID, io);
         } else {
@@ -73,7 +73,7 @@ io.on("connection", (socket) => {
   //* ================================================= Lobby Handler ======================================================== *\\
   socket.on("createLobby", (username) => {
     if (isUsernameValid(username)) {
-      console.log("Lobby was created");
+      console.log("Lobby was created by", socket.id);
       const CreateLobbyObj = CreateLobby(socket, username);
       socket.emit("lobby", CreateLobbyObj);
     } else {
@@ -124,7 +124,7 @@ io.on("connection", (socket) => {
           players: playersArr,
         };
         socket.emit("lobby", JoinedreturnData);
-        console.log(Joined.name, "has joined the lobby with id:", roomID);
+        console.log(Joined.name,"/",socket.id, "has joined the lobby with id:", roomID);
       } else {
         socket.emit("invalidUsername");
       }
@@ -165,7 +165,7 @@ io.on("connection", (socket) => {
   socket.on("playerReady", () => {
     const roomID = PlayerRooms.get(socket.id);
     const ReturnPlayerReady = PlayerReady(socket.id, roomID);
-    console.log("player was ready"); //! Console log
+    console.log("player", socket.id, "was ready"); //! Console log
     io.to(roomID).emit("playerHandler", ReturnPlayerReady);
   });
 
@@ -183,7 +183,7 @@ io.on("connection", (socket) => {
         roomData.players.get(socket.id).deck,
         roomData.settings.handSize,
       );
-      // ! TODO lave så vært deck indebære decksize antal kort
+
       //give players correct information
       for (let [playerid, player] of roomData.players.entries()) {
         player.lives = lifeAmount;
@@ -197,7 +197,6 @@ io.on("connection", (socket) => {
 
       // Calculate the minimum amount of cards present in all decks
       roomData.maxDeckSize = CalculateMaxDeckSize(roomData);
-
       roomData.gameStarted = true;
 
       const playerLives = MapToPlayerLives(roomData.players);
@@ -208,8 +207,9 @@ io.on("connection", (socket) => {
         turn: roomData.turn,
       };
       io.to(roomID).emit("startedGame", startedGameData);
-      console.log("Started game");
+      console.log("Started game made by", socket.id);
     } else {
+      console.log("Can not start game made by", socket.id);
       socket.emit("cantStartGame");
     }
   });
@@ -251,6 +251,7 @@ io.on("connection", (socket) => {
     }
 
     if (checkWinner(roomID, roomData, socket, io)) {
+      console.log("Delete lobby made by", socket.id);
       return DeleteLobby(roomID, io);
     }
 
