@@ -180,7 +180,7 @@ io.on("connection", (socket) => {
 
       //Give each player a starting hand
       let hand = drawHand(
-        roomData.settings.deckSize,
+        roomData.players.get(socket.id).deck,
         roomData.settings.handSize,
       );
 
@@ -228,6 +228,7 @@ io.on("connection", (socket) => {
       .to(roomID)
       .emit("cardPicked", player.deck.cards[player.hand[data.cardID]]);
     removeCardFromHand(socket.id, data.cardID, roomID);
+	
   });
 
   // Used when a user is done answering a question
