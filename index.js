@@ -59,7 +59,7 @@ io.on("connection", (socket) => {
         DeleteLobby(roomID, io);
       } else {
         // If game has already started, disconnect all clients from game, also if not a host.
-        if(roomData.gameStarted) {
+        if (roomData.gameStarted) {
           socket.to(roomID).emit("LeaveLobby");
           DeleteLobby(roomID, io);
         } else {

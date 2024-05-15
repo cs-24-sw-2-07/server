@@ -41,7 +41,6 @@ function MapToPlayerLives(map) {
 }
 
 function checkWinner(roomID, roomData, socket, io) {
-
     const players = [...roomData.players.values()];
 
     // check if theres only one player left, declare that player as winner.
@@ -93,7 +92,7 @@ function switchRoles(roomID, roomData, socket) {
     // Assign new player to select card and new player to answer.
 
     // Check if current next player is alive, else they should be skipped.
-    if(roomData.players.get(roomData.turn.next).lives === 0) {
+    if (roomData.players.get(roomData.turn.next).lives === 0) {
         // Set next player to a player alive.
         roomData.turn.next = nextPlayer(roomData);
     }
