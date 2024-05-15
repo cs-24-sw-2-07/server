@@ -39,8 +39,8 @@ function drawCard(oppPerformance, deck, usedCards, handCards, maxLives) {
     //check if the new card on the hand should be harder or easier
     if(oppPerformance >= 0) {
         // The floored number between lifevariance and 0. 
-        const middle = Math.floor((lifeVariance) / 2); 
-        if(oppPerformance >= middle){
+        const middlePerformance = Math.floor((lifeVariance) / 2); 
+        if(oppPerformance >= middlePerformance){
             newCardRating[0] = 5;
             newCardRating[1] = 4;
         }
@@ -50,8 +50,8 @@ function drawCard(oppPerformance, deck, usedCards, handCards, maxLives) {
         }
     }
     else if (oppPerformance < 0) {
-        const middle = -1 * Math.floor((lifeVariance) / 2);
-        if (oppPerformance > middle) {
+        const middlePerformance = -1 * Math.floor((lifeVariance) / 2);
+        if (oppPerformance > middlePerformance) {
             newCardRating[0] = 3;
             newCardRating[1] = 2;
         } else {
