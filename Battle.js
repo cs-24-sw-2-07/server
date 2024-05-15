@@ -33,38 +33,41 @@ function removeCardFromHand(playerID, usedIndex, roomID) {
 
 // draw a new card
 function drawCard(oppPerformance, deck, usedCards, handCards, maxLives) {
-    let newCardRating;
+    let newCardRating = [3, 3];
     //The amount life can vary --> So, if max lives is 3, then it can vary with -2, -1, 0, 1, 2
     const lifeVariance = maxLives - 1;
     //check if the new card on the hand should be harder or easier
     if(oppPerformance > 0) {
-        const avgLives = Math.ceil((lifeVariance) / 2); 
-        if(oppPerformance > avgLives){
-            newCardRating = (lifeVariance + oppPerformance) + maxLives;
+        // The floored number between lifevariance and 0. 
+        const middle = Math.floor((lifeVariance) / 2); 
+        if(oppPerformance >= middle){
+            newCardRating[0] = 5;
+            newCardRating[1] = 4;
         }
         else{
-            newCardRating = (avgLives + oppPerformance) + maxLives;
+            newCardRating[0] = 4;
+            newCardRating[1] = 3;
         }
     }
     else if (oppPerformance < 0) {
-        const avgLives = -1 * Math.ceil((lifeVariance) / 2); 
-        console.log(avgLives);
-        if (oppPerformance >= avgLives) {
-            newCardRating = (avgLives + oppPerformance) + maxLives;
+        const middle = -1 * Math.floor((lifeVariance) / 2);
+        if (oppPerformance > middle) {
+            newCardRating[0] = 3;
+            newCardRating[1] = 2;
         } else {
-            newCardRating = (lifeVariance + oppPerformance) + maxLives;
+            newCardRating[0] = 2;
+            newCardRating[1] = 1;
         }
     }
-    else {
-        newCardRating = 3; 
-    }
+
     //make an array where each card also has their index as a key/value pair
     const cards = deck.cards.map((card,index) => ({...card, index: index}));
     //find all the cards that have not been played
     const unusedCards = cards.filter(card => !(handCards.includes(card.index) || usedCards.includes(card.index))); 
     //find cards that match the rating we want
-    const candidates = unusedCards.filter(card => card.rating === Math.ceil(newCardRating) 
-                                                || card.rating === Math.floor(newCardRating));
+    const candidates = unusedCards.filter(card => card.rating === newCardRating[0] 
+                                                || card.rating === newCardRating[1]);
+    
     if(candidates.length === 0) {
        return unusedCards[Math.floor(Math.random()*unusedCards.length)].index;
     }
@@ -97,7 +100,7 @@ function checkWinner(roomID, roomData, socket, io) {
     // Draw card for player if any is left and their played cards does not exceed the maxDeckSize for the room.
     let player = Rooms.get(roomID).players.get(socket.id);
     if (player.deck.cards.length > player.usedCards.length + player.hand.length) {
-        const oppPerformance = computeOppPerformance(roomData);
+        const oppPerformance = computeOppPerformance(roomData, socket.id);
         let pickedCard = drawCard(oppPerformance, player.deck, player.usedCards, player.hand, roomData.settings.life);
         player.hand.push(pickedCard);
     }
@@ -149,12 +152,15 @@ function switchRoles(roomID, roomData, socket) {
     socket.emit("switchRoles", { turn: roomData.turn, hand: roomData.players.get(socket.id).hand });
 }
 
-function computeOppPerformance(roomData) {
+function computeOppPerformance(roomData, playerID) {
     const opponentID = roomData.turn.next; 
     const players = Rooms.get(PlayerRooms.get(opponentID)).players; 
     const opponent = players.get(opponentID);
+    const player = players.get(playerID);
 
     const playerArr = MapToPlayerLives(players);
-    const avgPerformance = playerArr.reduce((sum, player) => sum + player.lives, 0) / playerArr.length; 
-    return opponent.lives - avgPerformance;
+    const avgPerformance = playerArr.reduce((sum, player) => sum + player.lives, 0) / playerArr.length;
+    
+    // The opponents performance is based on difference from you and the difference from the average 
+    return (opponent.lives - player.lives) + (opponent.lives - avgPerformance);
 }
