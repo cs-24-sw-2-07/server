@@ -197,7 +197,7 @@ io.on("connection", (socket) => {
 
       // Calculate the minimum amount of cards present in all decks
       roomData.maxDeckSize = CalculateMaxDeckSize(roomData);
-
+      console.log("maxLives ", roomData.maxDeckSize)
       roomData.gameStarted = true;
 
       const playerLives = MapToPlayerLives(roomData.players);
