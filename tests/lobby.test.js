@@ -1,5 +1,5 @@
 import { expect, it, describe } from "vitest";
-import { CreateLobbyID, CreateLobby, ChangeSettings, DeleteLobby, JoinLobby, ShouldStartGame, Rooms, PlayerReady, ChangeDeckState, isUsernameValid, LeaveLobby } from "../Lobby";
+import { CreateLobbyID, CreateLobby, ChangeSettings, DeleteLobby, JoinLobby, ShouldStartGame, Rooms, PlayerReady, ChangeDeckState, isUsernameValid, LeaveLobby, CalculateMaxDeckSize } from "../Lobby";
 import { PlayerRooms } from "..";
 
 describe("lobby functions", () => {
@@ -174,4 +174,29 @@ describe("lobby functions", () => {
         expect(PlayerRooms.get(socket2.id)).toBeUndefined;
     });
 
+    it("find min. deck size", () => {
+        // create mock roomData
+        const roomData = {
+            players: new Map(),
+            maxDeckSize:NaN
+        };
+        
+        //Give socket 1 a deck
+        const deck1 = { name: "test deck", cards: [] };
+        for (let i = 0; i < 15; i++) {
+            deck1.cards.push({ name: `card${i}`, question: `question${i}`, answer: `answer${i}` });
+        }
+        roomData.players.set("ojIckSD2jqNzOqIrAGzL",{deck:deck1})
+        
+        //Give socket 2 a deck
+        const deck2 = { name: "test deck", cards: [] };
+        for (let i = 0; i < 20; i++) {
+            deck2.cards.push({ name: `card${i}`, question: `question${i}`, answer: `answer${i}` });
+        }
+        roomData.players.set("ghu45DxGsxgy5VCls8Zs",{deck:deck2})
+
+        roomData.maxDeckSize = CalculateMaxDeckSize(roomData);
+        expect(roomData.maxDeckSize).toBe(15)
+        
+    })
 }); 
