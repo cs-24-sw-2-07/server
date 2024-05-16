@@ -1,5 +1,5 @@
 import { PlayerRooms, Rooms } from "./index.js";
-export { drawHand, removeCardFromHand, checkWinner, MapToPlayerLives, nextPlayer, switchRoles };
+export { drawHand, removeCardFromHand, checkWinner, MapToPlayerLives, nextPlayer, switchRoles, drawCard, computeOppPerformance };
 
 //make a starting hand
 function drawHand(deck, handSize) {
