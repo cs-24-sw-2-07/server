@@ -1,6 +1,6 @@
 import { expect, it, describe } from "vitest";
-import { CreateLobby, ChangeDeckState, JoinLobby, Rooms, CalculateMaxDeckSize } from "../Lobby";
-import { removeCardFromHand, MapToPlayerLives, checkWinner, nextPlayer } from "../Battle";
+import { CreateLobby, JoinLobby, Rooms } from "../Lobby";
+import { removeCardFromHand, MapToPlayerLives, checkWinner, nextPlayer, switchRoles } from "../Battle";
 
 
 describe("Battle functions", () => {
@@ -173,6 +173,61 @@ describe("Battle functions", () => {
     })
 
     it("switch roles", () => {
-        
+         // create mock socket objects
+         const socket1 = {
+            id: "ojIckSD2jqNzOqIrAGzL",
+            join: () => { },
+            to: (socketid) => {
+                return {
+                    emit: (event, arg) => {
+                    }
+                };
+            },
+            emit: (event, arg) => {
+            }
+        };
+        const socket2 = {
+            id: "ghu45DxGsxgy5VCls8Zs", // id is 20 random chars.
+            join: () => { },
+            to: (socketid) => {
+                return {
+                    emit: (event, arg) => {
+                    }
+                };
+            },
+            emit: (event, arg) => {
+            }
+        };
+        const socket3 = {
+            id: "ghu45DxGsxgy5VCls8Zg", // id is 20 random chars.
+            join: () => { },
+            to: (socketid) => {
+                return {
+                    emit: (event, arg) => {
+                    }
+                };
+            },
+            emit: (event, arg) => {
+            }
+        };
+
+        //create mock lobby
+        const lobby = CreateLobby(socket1, "testuser");
+        const roomID = `/${lobby.id}`;
+        JoinLobby({ name: "testuser2", id: roomID }, roomID, socket2)
+        JoinLobby({ name: "testuser3", id: roomID }, roomID, socket3)
+        let roomData = Rooms.get(roomID);
+
+        roomData.players.get(socket1.id).lives = 1;
+        roomData.players.get(socket2.id).lives = 1;
+        roomData.players.get(socket3.id).lives = 1;
+        roomData.turn = {current: null, next: null}
+
+        roomData.turn.current = socket1.id;
+        roomData.turn.next = socket2.id;
+        switchRoles(roomID, roomData, socket1);
+              
+        expect(roomData.turn.current).toBe(socket2.id)
+        expect(roomData.turn.next).toBe(socket3.id)
     })
 })
