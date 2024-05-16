@@ -1,7 +1,7 @@
 import { expect, it, describe } from "vitest";
 import { CreateLobby, ChangeDeckState, JoinLobby, Rooms } from "../Lobby";
 import { PlayerRooms } from "..";
-import { removeCardFromHand } from "../Battle";
+import { removeCardFromHand, MapToPlayerLives } from "../Battle";
 
 
 describe("Battle functions", () => {
@@ -17,15 +17,38 @@ describe("Battle functions", () => {
         const lobby = CreateLobby(socket, "testuser");
         const roomID = `/${lobby.id}`
 
-        //Give socket 1 a deck
-        const deck1 = { name: "test deck", cards: [] };
-        for (let i = 0; i < 20; i++) {
-            deck1.cards.push({ name: `card${i}`, question: `question${i}`, answer: `answer${i}` });
-        } 
-        Rooms.get(roomID).players.get(socketid).hand = [1,2,3,4,5];
-        ChangeDeckState(deck1, socket.id, Rooms.get(roomID));
+        Rooms.get(roomID).players.get(socketid).hand = [1, 2, 3, 4, 5];
 
         removeCardFromHand(socket.id, 1, roomID)
-        expect(Rooms.get(roomID).players.get(socketid).hand).toStrictEqual([1,3,4,5]);
+        expect(Rooms.get(roomID).players.get(socketid).hand).toStrictEqual([1, 3, 4, 5]);
+    })
+
+    it("map player lives", () => {
+        // create mock socket objects
+        const socket1 = {
+            id: "ojIckSD2jqNzOqIrAGzL", // id is 20 random chars.
+            join: () => { }
+        };
+        const socket2 = {
+            id: "ghu45DxGsxgy5VCls8Zs", // id is 20 random chars.
+            join: () => { }
+        };
+        const lobby = CreateLobby(socket1, "testuser");
+        const roomID = `/${lobby.id}`;
+        JoinLobby({ name: "testuser2", id: roomID }, roomID, socket2)
+        //give players lives
+        Rooms.get(roomID).players.get(socket1.id).lives = 4;
+        Rooms.get(roomID).players.get(socket2.id).lives = 6;
+        
+        const playerArr = MapToPlayerLives(Rooms.get(roomID).players);
+        // Testing data on the array
+        expect(playerArr[0].lives).toBe(4)
+        expect(playerArr[1].lives).toBe(6)
+        
+        expect(playerArr[0].name).toBe("testuser")
+        expect(playerArr[1].name).toBe("testuser2")
+
+        expect(playerArr[0].id).toBe(socket1.id)
+        expect(playerArr[1].id).toBe(socket2.id)
     })
 })
