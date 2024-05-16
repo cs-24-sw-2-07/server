@@ -8,7 +8,7 @@
     "start": "node index.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test": "vitest run",
+    "test": "vitest run --fileParallelism=false",
     "coverage": "vitest run --coverage"
   },
   "author": "",
