@@ -1,7 +1,6 @@
 import { expect, it, describe } from "vitest";
 import { CreateLobby, ChangeDeckState, JoinLobby, Rooms, CalculateMaxDeckSize } from "../Lobby";
-import { PlayerRooms } from "..";
-import { removeCardFromHand, MapToPlayerLives, checkWinner } from "../Battle";
+import { removeCardFromHand, MapToPlayerLives, checkWinner, nextPlayer } from "../Battle";
 
 
 describe("Battle functions", () => {
@@ -76,11 +75,10 @@ describe("Battle functions", () => {
                 };
             },
             emit: (event, arg) => {
-                console.log(event, arg);
             }
         };
 
-        //create mock socket event 
+        //create mock socket io event 
         const io = {
             to: (socketid) => {
                 return {
@@ -99,7 +97,7 @@ describe("Battle functions", () => {
 
         //give players lives
         roomData.players.get(socket1.id).lives = 4;
-        roomData.players.get(socket2.id).lives = 6;
+        roomData.players.get(socket2.id).lives = 4;
 
         roomData.startedGame = true;
 
@@ -133,5 +131,48 @@ describe("Battle functions", () => {
 
         winnerValue = checkWinner(roomID, Rooms.get(roomID), socket1, io)
         expect(winnerValue).toBe(true)
+    })
+
+    it("find next player", () => {
+        const socket1 = {
+            id: "ojIckSD2jqNzOqIrAGzL", // id is 20 random chars.
+            join: () => { },
+        };
+        const socket2 = {
+            id: "ghu45DxGsxgy5VCls8Zs", // id is 20 random chars.
+            join: () => { },
+        };
+        const socket3 = {
+            id: "ghu45DxGsxgy5VCls8Zg", // id is 20 random chars.
+            join: () => { },
+        };
+
+        //create mock lobby
+        const lobby = CreateLobby(socket1, "testuser");
+        const roomID = `/${lobby.id}`;
+        JoinLobby({ name: "testuser2", id: roomID }, roomID, socket2)
+        JoinLobby({ name: "testuser3", id: roomID }, roomID, socket3)
+        let roomData = Rooms.get(roomID);
+        //give players lives
+        roomData.players.get(socket1.id).lives = 1;
+        roomData.players.get(socket2.id).lives = 1;
+        roomData.players.get(socket3.id).lives = 1;
+        roomData.turn = {current: null, next: null}
+
+        roomData.turn.current = socket1.id;
+        roomData.turn.next = nextPlayer(roomData);
+        expect(roomData.turn.next).toBe(socket2.id)
+
+        roomData.turn.current =  roomData.turn.next;
+        roomData.turn.next = nextPlayer(roomData);
+        expect(roomData.turn.next).toBe(socket3.id)
+
+        roomData.turn.current =  roomData.turn.next;
+        roomData.turn.next = nextPlayer(roomData);
+        expect(roomData.turn.next).toBe(socket1.id)
+    })
+
+    it("switch roles", () => {
+        
     })
 })

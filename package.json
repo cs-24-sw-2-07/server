@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest run --fileParallelism=false",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --coverage --fileParallelism=false"
   },
   "author": "",
   "license": "ISC",
