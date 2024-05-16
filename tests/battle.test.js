@@ -111,6 +111,22 @@ describe("Battle functions", () => {
         let winnerValue = checkWinner(roomID, Rooms.get(roomID), socket1, io)
         expect(winnerValue).toBe(true)
 
+        //give players lives
+        roomData.players.get(socket1.id).lives = 6;
+        roomData.players.get(socket2.id).lives = 4;
+
+        roomData.startedGame = true;
+
+        // Sets up the game data and tests it
+        roomData.maxDeckSize = 7;
+        roomData.players.get(socket1.id).usedCards = [1, 2, 3, 4, 5, 6, 7];
+        roomData.players.get(socket2.id).usedCards = [1, 2, 3, 4, 5, 6, 7];
+        roomData.players.get(socket1.id).hand = [];
+        roomData.players.get(socket2.id).hand = [];
+
+        winnerValue = checkWinner(roomID, Rooms.get(roomID), socket1, io)
+        expect(winnerValue).toBe(true)
+
         // Sets up the game data and tests it
         roomData.maxDeckSize = 7;
         roomData.players.get(socket1.id).usedCards = [1, 2, 3, 4, 5];
@@ -229,5 +245,17 @@ describe("Battle functions", () => {
               
         expect(roomData.turn.current).toBe(socket2.id)
         expect(roomData.turn.next).toBe(socket3.id)
+
+        roomData.players.get(socket1.id).lives = 1;
+        roomData.players.get(socket2.id).lives = 0;
+        roomData.players.get(socket3.id).lives = 1;
+        roomData.turn = {current: null, next: null}
+
+        roomData.turn.current = socket1.id;
+        roomData.turn.next = socket2.id;
+        switchRoles(roomID, roomData, socket1);
+              
+        expect(roomData.turn.current).toBe(socket3.id)
+        expect(roomData.turn.next).toBe(socket1.id)
     })
 })
