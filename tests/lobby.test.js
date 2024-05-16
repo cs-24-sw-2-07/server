@@ -174,4 +174,17 @@ describe("lobby functions", () => {
         expect(PlayerRooms.get(socket2.id)).toBeUndefined;
     });
 
+    it("Check if player has a made decks", () => {
+        // hvad der skal tjekket 
+        // hvilken værdi cconst players får 
+        // en der tjekker at 
+        // konstanter der skal bruges i functionen: socket, displayName, settingsJson);
+        //      roomID = et lobby id med "/" foran og 5 tal så /78489
+        //      settings = 
+        //      setting = 
+    expect(CheckPlayerDecks.playerData.ready).toBe(false);
+    }
+
+    )
+
 }); 
