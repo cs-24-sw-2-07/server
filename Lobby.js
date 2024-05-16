@@ -81,7 +81,7 @@ function ChangeSettings(ChangeObj, roomID) {
     const setting = ChangeObj.key;
     const Room = Rooms.get(roomID);
     Room.settings[setting] = Number(ChangeObj[setting]);
-    
+
     return true;
 }
 

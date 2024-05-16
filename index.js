@@ -124,7 +124,7 @@ io.on("connection", (socket) => {
           players: playersArr,
         };
         socket.emit("lobby", JoinedreturnData);
-        console.log(Joined.name,"/",socket.id, "has joined the lobby with id:", roomID);
+        console.log(Joined.name, "/", socket.id, "has joined the lobby with id:", roomID);
       } else {
         socket.emit("invalidUsername");
       }
@@ -228,7 +228,7 @@ io.on("connection", (socket) => {
       .to(roomID)
       .emit("cardPicked", player.deck.cards[player.hand[data.cardID]]);
     removeCardFromHand(socket.id, data.cardID, roomID);
-	
+
   });
 
   // Used when a user is done answering a question

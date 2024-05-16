@@ -16,7 +16,7 @@ describe("lobby functions", () => {
         // create mock socket object
         const socket = {
             id: socketid, // id is 20 random chars.
-            join: () => {}
+            join: () => { }
         };
         const lobby = CreateLobby(socket, "testuser");
 
@@ -44,10 +44,10 @@ describe("lobby functions", () => {
         // create mock socket object
         const socket = {
             id: socketid, // id is 20 random chars.
-            join: () => {}
+            join: () => { }
         };
         const lobby = CreateLobby(socket, "testuser");
-        
+
         // Check settings validation
         expect(ChangeSettings({ key: "deckSize", deckSize: 5 }, `/${lobby.id}`)).toBe(true)
         expect(ChangeSettings({ key: "deckSize", deckSize: 20 }, `/${lobby.id}`)).toBe(true)
@@ -78,15 +78,15 @@ describe("lobby functions", () => {
         // create mock socket object
         const socket = {
             id: socketid, // id is 20 random chars.
-            join: () => {}
+            join: () => { }
         };
         const lobby = CreateLobby(socket, "testuser");
 
         expect(Rooms.get(`/${lobby.id}`)).not.undefined;
-        
+
         // create mock io object
         const io = {
-            socketsLeave: () => {}
+            socketsLeave: () => { }
         }
 
         DeleteLobby(`/${lobby.id}`, io);
@@ -97,11 +97,11 @@ describe("lobby functions", () => {
         // create mock socket objects
         const socket1 = {
             id: "ojIckSD2jqNzOqIrAGzL", // id is 20 random chars.
-            join: () => {}
+            join: () => { }
         };
         const socket2 = {
             id: "ghu45DxGsxgy5VCls8Zs", // id is 20 random chars.
-            join: () => {}
+            join: () => { }
         };
         const lobby = CreateLobby(socket1, "testuser");
 
@@ -116,8 +116,8 @@ describe("lobby functions", () => {
         const deck = { name: "test deck", cards: [] };
 
         // Test for too small deck size first
-        for(let i = 0; i < 5; i++) {
-            deck.cards.push({name: `card${i}`, question: `question${i}`, answer: `answer${i}`});
+        for (let i = 0; i < 5; i++) {
+            deck.cards.push({ name: `card${i}`, question: `question${i}`, answer: `answer${i}` });
         }
 
         ChangeDeckState(deck, socket1.id, Rooms.get(roomID));
@@ -126,8 +126,8 @@ describe("lobby functions", () => {
         expect(ShouldStartGame(roomID)).toBe(false);
 
         // Test for bigger deck size
-        for(let i = 4; i < 20; i++) {
-            deck.cards.push({name: `card${i}`, question: `question${i}`, answer: `answer${i}`});
+        for (let i = 4; i < 20; i++) {
+            deck.cards.push({ name: `card${i}`, question: `question${i}`, answer: `answer${i}` });
         }
 
         ChangeDeckState(deck, socket1.id, Rooms.get(roomID));
@@ -150,12 +150,12 @@ describe("lobby functions", () => {
         // create mock socket objects
         const socket1 = {
             id: "ojIckSD2jqNzOqIrAGzL", // id is 20 random chars.
-            join: () => {}
+            join: () => { }
         };
         const socket2 = {
             id: "ghu45DxGsxgy5VCls8Zs", // id is 20 random chars.
-            join: () => {},
-            leave: () => {} // Add leave mock function
+            join: () => { },
+            leave: () => { } // Add leave mock function
         };
         const lobby = CreateLobby(socket1, "testuser");
         const roomID = `/${lobby.id}`;
