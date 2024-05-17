@@ -1,6 +1,7 @@
 import { expect, it, describe } from "vitest";
-import { CreateLobbyID, CreateLobby, ChangeSettings, DeleteLobby, JoinLobby, ShouldStartGame, Rooms, PlayerReady, ChangeDeckState, isUsernameValid, LeaveLobby, CalculateMaxDeckSize } from "../Lobby";
+import { CreateLobbyID, CreateLobby, ChangeSettings, DeleteLobby, JoinLobby, ShouldStartGame, Rooms, PlayerReady, ChangeDeckState, isUsernameValid, LeaveLobby, CheckPlayerDecks, CalculateMaxDeckSize } from "../Lobby";
 import { PlayerRooms } from "..";
+
 
 describe("lobby functions", () => {
 
@@ -174,6 +175,115 @@ describe("lobby functions", () => {
         expect(PlayerRooms.get(socket2.id)).toBeUndefined;
     });
 
+    it("Check player decks length in comparison with settings", () => {
+        const socketid = "ojIckSD2jqNzOqIrAGzL"; // socket id of user1
+    
+        // create mock socket2 object
+        const socket = {
+            id: socketid, // id is 20 random chars.
+            join: () => {}
+        };
+
+        const lobby = CreateLobby(socket, "testuser");
+        const roomID = `/${lobby.id}`;
+        JoinLobby({name: "test"}, roomID, socket); 
+
+        const deck = { name: "test deck", cards: [] };
+        for(let i = 0; i < 5; i++) {
+            deck.cards.push({name: `card${i}`, question: `question${i}`, answer: `answer${i}`});
+        }
+        const player = Rooms.get(roomID).players.get(socket.id);
+        player.deck = deck; 
+
+        const setting = "deckSize"; 
+        const settings = {
+            deckSize:10
+        };
+        
+        let playerArr=CheckPlayerDecks(roomID, settings, setting);
+
+        expect(player.ready).toBe(false);
+        expect(player.deck).toBe(null);
+        expect(playerArr[0]).toBe(socket.id);
+
+
+        // the deck is bigger than the settings 
+        const socketid2 =  "ghu45DxGsxgy5VCls8Zs";// socket id of user2 
+        
+        const socket2 = {
+            id: socketid2, // id is 20 random chars.
+            join: () => {}
+        };
+
+   
+
+        const lobby2 = CreateLobby(socket2, "testuser2");
+
+
+
+        const roomID2 = `/${lobby2.id}`;
+        JoinLobby({name: "test2"}, roomID2, socket2); 
+      
+
+        const deck2 = { name: "test deck2", cards: [] };
+        for(let i = 0; i < 12; i++) {
+            deck.cards.push({name: `card${i}`, question: `question${i}`, answer: `answer${i}`});
+        }
+
+
+        const player2 = Rooms.get(roomID2).players.get(socket2.id);
+        player2.ready = true 
+        player2.deck = deck2; 
+
+        let playerArr2=CheckPlayerDecks(roomID, settings, setting);
+
+        expect(player2.ready).toBe(true);
+        expect(player2.deck).not.toBe(null);
+        expect(playerArr2.length).toBe(0);
+
+    });
+
+    it("Change deck setting", () => {
+        
+        // create mock socket object
+        const socket1 = {
+            id: "ojIckSD2jqNzOqIrAGzL", // id is 20 random chars.
+            join: () => {}
+        };
+        const socket2 = {
+            id: "ojIckSD2jqNzOqIrAGzZ",
+            join: () => {}
+        }
+
+        const lobby = CreateLobby(socket1, "testuser");
+        const roomID = `/${lobby.id}`;
+        JoinLobby({name: "test2"}, roomID, socket2); 
+
+        const deck = { name: "test deck", cards: [] };
+        for(let i = 0; i < 5; i++) {
+            deck.cards.push({name: `card${i}`, question: `question${i}`, answer: `answer${i}`});
+        }
+          
+        const Room = Rooms.get(roomID);
+        const player1 = Room.players.get(socket1.id);
+        const player2 = Room.players.get(socket2.id);
+
+        Room.settings.deckSize = 15;
+        let changedSetting1 = ChangeDeckState(deck, socket1.id, Room);
+        expect(changedSetting1).toBe(false); 
+        expect(player1.ready).toBe(false);
+
+        Room.settings.deckSize = 4; 
+        changedSetting1 = ChangeDeckState(deck, socket1.id, Room);         
+        expect(changedSetting1).toBe(true); 
+        expect(player1.ready).toBe(true);
+
+        let changedSetting2 = ChangeDeckState(deck, socket2.id, Room);
+        expect(changedSetting2).toBe(true);
+        expect(player2.ready).toBe(false);
+        
+    });
+
     it("find min. deck size", () => {
         // create mock roomData
         const roomData = {
@@ -198,5 +308,5 @@ describe("lobby functions", () => {
         roomData.maxDeckSize = CalculateMaxDeckSize(roomData);
         expect(roomData.maxDeckSize).toBe(15)
         
-    })
+    });
 }); 
