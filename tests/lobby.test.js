@@ -1,5 +1,5 @@
 import { expect, it, describe } from "vitest";
-import { CreateLobbyID, CreateLobby, ChangeSettings, DeleteLobby, JoinLobby, ShouldStartGame, Rooms, PlayerReady, ChangeDeckState, isUsernameValid, LeaveLobby } from "../Lobby";
+import { CreateLobbyID, checkValue, CreateLobby, DeleteLobby, JoinLobby, ShouldStartGame, Rooms, PlayerReady, ChangeDeckState, isUsernameValid, LeaveLobby } from "../Lobby";
 import { PlayerRooms } from "..";
 
 describe("lobby functions", () => {
@@ -47,29 +47,28 @@ describe("lobby functions", () => {
             join: () => {}
         };
         const lobby = CreateLobby(socket, "testuser");
+
+        const Room = Rooms.get(`/${lobby.id}`);
         
         // Check settings validation
-        expect(ChangeSettings({ key: "deckSize", deckSize: 5 }, `/${lobby.id}`)).toBe(true)
-        expect(ChangeSettings({ key: "deckSize", deckSize: 20 }, `/${lobby.id}`)).toBe(true)
-        expect(ChangeSettings({ key: "deckSize", deckSize: 3 }, `/${lobby.id}`)).toBe(false)
+        expect(checkValue({ key: "deckSize", deckSize: 5 }, Room).value).toBe("");
+        expect(checkValue({ key: "deckSize", deckSize: 20 }, Room).value).toBe("")
+        expect(checkValue({ key: "deckSize", deckSize: 3 }, Room).value).not.toBe("")
 
-        expect(ChangeSettings({ key: "handSize", handSize: 5 }, `/${lobby.id}`)).toBe(true)
-        expect(ChangeSettings({ key: "handSize", handSize: 10 }, `/${lobby.id}`)).toBe(true)
-        expect(ChangeSettings({ key: "handSize", handSize: 21 }, `/${lobby.id}`)).toBe(false)
+        expect(checkValue({ key: "handSize", handSize: 5 }, Room).value).toBe("")
+        expect(checkValue({ key: "handSize", handSize: 10 }, Room).value).toBe("")
+        expect(checkValue({ key: "handSize", handSize: 21 }, Room).value).not.toBe("")
 
-        expect(ChangeSettings({ key: "life", life: 1 }, `/${lobby.id}`)).toBe(true)
-        expect(ChangeSettings({ key: "life", life: 5 }, `/${lobby.id}`)).toBe(true)
-        expect(ChangeSettings({ key: "life", life: 10 }, `/${lobby.id}`)).toBe(true)
-        expect(ChangeSettings({ key: "life", life: 11 }, `/${lobby.id}`)).toBe(false)
+        expect(checkValue({ key: "life", life: 1 }, Room).value).toBe("")
+        expect(checkValue({ key: "life", life: 5 }, Room).value).toBe("")
+        expect(checkValue({ key: "life", life: 10 }, Room).value).toBe("")
+        expect(checkValue({ key: "life", life: 11 }, Room).value).not.toBe("")
 
-        expect(ChangeSettings({ key: "lobbySize", lobbySize: 1 }, `/${lobby.id}`)).toBe(false)
-        expect(ChangeSettings({ key: "lobbySize", lobbySize: 2 }, `/${lobby.id}`)).toBe(true)
-        expect(ChangeSettings({ key: "lobbySize", lobbySize: 3 }, `/${lobby.id}`)).toBe(true)
-        expect(ChangeSettings({ key: "lobbySize", lobbySize: 30 }, `/${lobby.id}`)).toBe(true)
-        expect(ChangeSettings({ key: "lobbySize", lobbySize: 31 }, `/${lobby.id}`)).toBe(false)
-
-        // Unknown setting
-        expect(ChangeSettings({ key: "test", test: 5 }, `/${lobby.id}`)).toBe(false)
+        expect(checkValue({ key: "lobbySize", lobbySize: 1 }, Room).value).not.toBe("")
+        expect(checkValue({ key: "lobbySize", lobbySize: 2 }, Room).value).toBe("")
+        expect(checkValue({ key: "lobbySize", lobbySize: 3 }, Room).value).toBe("")
+        expect(checkValue({ key: "lobbySize", lobbySize: 30 }, Room).value).toBe("")
+        expect(checkValue({ key: "lobbySize", lobbySize: 31 }, Room).value).not.toBe("")
     });
 
     it("delete lobby", () => {
