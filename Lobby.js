@@ -1,6 +1,6 @@
 //import path from "path";
 import { Rooms, PlayerRooms } from "./index.js";
-export { CreateLobbyID, CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj, isUsernameValid, CheckPlayerDecks, CalculateMaxDeckSize };
+export { CreateLobbyID, CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj, isUsernameValid, CheckPlayerDecks, CalculateMaxDeckSize, checkValue };
 
 //* =================================================== host lobby =============================================================== *\\
 /**
@@ -248,6 +248,46 @@ function isSettingValid(SettingObj, roomID) {
             return SettingObj[setting] >= 2 && SettingObj[setting] <= 30;
         default:
             return false;
+    }
+}
+
+function checkValue(settingObj, roomID) {
+    const settingKey = settingObj.key; 
+    const setting = settingObj[settingKey]; 
+    const Room = Rooms.get(roomID); 
+    
+    let maximum; 
+    let minimum;
+    switch(settingKey) {
+        case "deckSize":
+            minimum = 5;
+            maximum = Number.MAX_SAFE_INTEGER; 
+            break; 
+        case "handSize":
+            minimum = 3;
+            maximum = Room.settings.deckSize; 
+            break; 
+        case "life":
+            minimum = 1;
+            maximum = 10; 
+            break; 
+        case "lobbySize":
+            minimum = Room.players.size >= 2 ? Room.players.size : 2;
+            maximum = 30; 
+            break; 
+    }
+    let value; 
+    if (Number(setting) > maximum) {
+        value = "Setting is set too large";
+    } else if (Number(setting) < minimum) {
+        value = "Setting is set too small";
+    } else {
+        value = ""; 
+    }
+
+    return {
+        key: settingKey,
+        value: value
     }
 }
 

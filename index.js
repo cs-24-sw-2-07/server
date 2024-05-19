@@ -14,7 +14,8 @@ import {
   MapToArrayObj,
   isUsernameValid,
   CheckPlayerDecks,
-  CalculateMaxDeckSize
+  CalculateMaxDeckSize,
+  checkValue
 } from "./Lobby.js";
 import {
   removeCardFromHand,
@@ -83,9 +84,10 @@ io.on("connection", (socket) => {
   socket.on("changeSettings", (UpdatedSettings) => {
     const roomID = PlayerRooms.get(socket.id);
     const isPossible = ChangeSettings(UpdatedSettings, roomID);
+    socket.emit("changeSetting", checkValue(UpdatedSettings, roomID)); 
     if (isPossible) {
       socket.to(roomID).emit("changeSetting", UpdatedSettings);
-
+      
       //Check if the changed setting is the deck size
       const setting = UpdatedSettings.key;
       if (setting === "deckSize") {
