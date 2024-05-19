@@ -14,7 +14,8 @@ import {
   MapToArrayObj,
   isUsernameValid,
   CheckPlayerDecks,
-  CalculateMaxDeckSize
+  CalculateMaxDeckSize,
+  checkValue
 } from "./Lobby.js";
 import {
   removeCardFromHand,
@@ -58,8 +59,8 @@ io.on("connection", (socket) => {
         socket.to(roomID).emit("LeaveLobby");
         DeleteLobby(roomID, io);
       } else {
-        // If game has already started, disconnect all clients from game, also if not a host.
-        if (roomData.gameStarted) {
+        // If game has already started, disconnect all clients from game, also if not a host and player is not dead.
+        if (roomData.gameStarted && roomData.players.get(socket.id).lives > 0) {
           socket.to(roomID).emit("LeaveLobby");
           DeleteLobby(roomID, io);
         } else {
@@ -82,10 +83,13 @@ io.on("connection", (socket) => {
   });
   socket.on("changeSettings", (UpdatedSettings) => {
     const roomID = PlayerRooms.get(socket.id);
-    const isPossible = ChangeSettings(UpdatedSettings, roomID);
-    if (isPossible) {
+    const Room = Rooms.get(roomID);
+    const isPossible = checkValue(UpdatedSettings, Room);
+    socket.emit("changeSetting", isPossible); 
+    if (isPossible.value === "") {
+      ChangeSettings(UpdatedSettings, Room);
       socket.to(roomID).emit("changeSetting", UpdatedSettings);
-
+      
       //Check if the changed setting is the deck size
       const setting = UpdatedSettings.key;
       if (setting === "deckSize") {
@@ -102,7 +106,7 @@ io.on("connection", (socket) => {
           }
 
           //Emit the updated player statuses
-          const players = Rooms.get(roomID).players;
+          const players = Room.players;
           const playersArr = MapToArrayObj(players);
           io.to(roomID).emit("playerHandler", playersArr);
         }
