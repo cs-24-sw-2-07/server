@@ -83,9 +83,11 @@ io.on("connection", (socket) => {
   });
   socket.on("changeSettings", (UpdatedSettings) => {
     const roomID = PlayerRooms.get(socket.id);
-    const isPossible = ChangeSettings(UpdatedSettings, roomID);
-    socket.emit("changeSetting", checkValue(UpdatedSettings, roomID)); 
-    if (isPossible) {
+    const Room = Rooms.get(roomID);
+    const isPossible = checkValue(UpdatedSettings, Room);
+    socket.emit("changeSetting", isPossible); 
+    if (isPossible.value === "") {
+      ChangeSettings(UpdatedSettings, Room);
       socket.to(roomID).emit("changeSetting", UpdatedSettings);
       
       //Check if the changed setting is the deck size
@@ -104,7 +106,7 @@ io.on("connection", (socket) => {
           }
 
           //Emit the updated player statuses
-          const players = Rooms.get(roomID).players;
+          const players = Room.players;
           const playersArr = MapToArrayObj(players);
           io.to(roomID).emit("playerHandler", playersArr);
         }

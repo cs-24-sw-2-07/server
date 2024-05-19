@@ -74,15 +74,9 @@ function RoomStateObj(socket, username, Settings) {
  * @returns boolean whether the setting was accepted or not
  */
 //change Settings
-function ChangeSettings(ChangeObj, roomID) {
-    if (!isSettingValid(ChangeObj, roomID)) {
-        return false;
-    }
+function ChangeSettings(ChangeObj, Room) {
     const setting = ChangeObj.key;
-    const Room = Rooms.get(roomID);
     Room.settings[setting] = Number(ChangeObj[setting]);
-    
-    return true;
 }
 
 /**
@@ -229,33 +223,9 @@ function MapToArrayObj(map) {
     return array;
 }
 
-/**
- * Function that checks whether the inputted setting is accepted
- * @param {*} SettingObj the object containing the new setting
- * @returns boolean is true if the setting is within the range and false if not
- */
-function isSettingValid(SettingObj, roomID) {
-    const setting = SettingObj.key;
-    const Room = Rooms.get(roomID);
-    const settings = Room.settings;
-    switch (setting) {
-        case "deckSize":
-            return SettingObj[setting] >= 5;
-        case "handSize":
-            return SettingObj[setting] >= 3 && SettingObj[setting] <= settings.deckSize;
-        case "life":
-            return SettingObj[setting] >= 1 && SettingObj[setting] <= 10;
-        case "lobbySize":
-            return SettingObj[setting] >= 2 && SettingObj[setting] <= 30 && Room.players.size <= SettingObj[setting];
-        default:
-            return false;
-    }
-}
-
-function checkValue(settingObj, roomID) {
+function checkValue(settingObj, Room) {
     const settingKey = settingObj.key; 
-    const setting = settingObj[settingKey]; 
-    const Room = Rooms.get(roomID); 
+    const setting = settingObj[settingKey];
     
     let maximum; 
     let minimum;
