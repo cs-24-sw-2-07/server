@@ -1,6 +1,6 @@
 //import path from "path";
 import { Rooms, PlayerRooms } from "./index.js";
-export { CreateLobbyID, CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj, isUsernameValid, CheckPlayerDecks, CalculateMaxDeckSize };
+export { CreateLobbyID, CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj, isUsernameValid, CheckPlayerDecks, CalculateMaxDeckSize, checkValue };
 
 //* =================================================== host lobby =============================================================== *\\
 /**
@@ -74,15 +74,9 @@ function RoomStateObj(socket, username, Settings) {
  * @returns boolean whether the setting was accepted or not
  */
 //change Settings
-function ChangeSettings(ChangeObj, roomID) {
-    if (!isSettingValid(ChangeObj, roomID)) {
-        return false;
-    }
+function ChangeSettings(ChangeObj, Room) {
     const setting = ChangeObj.key;
-    const Room = Rooms.get(roomID);
     Room.settings[setting] = Number(ChangeObj[setting]);
-    
-    return true;
 }
 
 /**
@@ -229,25 +223,42 @@ function MapToArrayObj(map) {
     return array;
 }
 
-/**
- * Function that checks whether the inputted setting is accepted
- * @param {*} SettingObj the object containing the new setting
- * @returns boolean is true if the setting is within the range and false if not
- */
-function isSettingValid(SettingObj, roomID) {
-    const setting = SettingObj.key;
-    const settings = Rooms.get(roomID).settings;
-    switch (setting) {
+function checkValue(settingObj, Room) {
+    const settingKey = settingObj.key; 
+    const setting = settingObj[settingKey];
+    
+    let maximum; 
+    let minimum;
+    switch(settingKey) {
         case "deckSize":
-            return SettingObj[setting] >= 5;
+            minimum = 5;
+            maximum = Number.MAX_SAFE_INTEGER; 
+            break; 
         case "handSize":
-            return SettingObj[setting] >= 3 && SettingObj[setting] <= settings.deckSize;
+            minimum = 3;
+            maximum = Room.settings.deckSize; 
+            break; 
         case "life":
-            return SettingObj[setting] >= 1 && SettingObj[setting] <= 10;
+            minimum = 1;
+            maximum = 10; 
+            break; 
         case "lobbySize":
-            return SettingObj[setting] >= 2 && SettingObj[setting] <= 30;
-        default:
-            return false;
+            minimum = Room.players.size >= 2 ? Room.players.size : 2;
+            maximum = 30; 
+            break; 
+    }
+    let value; 
+    if (Number(setting) > maximum) {
+        value = "Setting is set too large";
+    } else if (Number(setting) < minimum) {
+        value = "Setting is set too small";
+    } else {
+        value = ""; 
+    }
+
+    return {
+        key: settingKey,
+        value: value
     }
 }
 
