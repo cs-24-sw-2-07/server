@@ -1,5 +1,5 @@
 import { expect, it, describe } from "vitest";
-import { CreateLobbyID, checkValue, CreateLobby, DeleteLobby, JoinLobby, ShouldStartGame, Rooms, PlayerReady, ChangeDeckState, isUsernameValid, LeaveLobby } from "../Lobby";
+import { CreateLobbyID, checkValue, CreateLobby, DeleteLobby, CheckPlayerDecks, CalculateMaxDeckSize, JoinLobby, ShouldStartGame, Rooms, PlayerReady, ChangeDeckState, isUsernameValid, LeaveLobby } from "../Lobby";
 import { PlayerRooms } from "..";
 
 
@@ -199,12 +199,11 @@ describe("lobby functions", () => {
             deckSize:10
         };
         
-        let playerArr=CheckPlayerDecks(roomID, settings, setting);
+        let playerArr = CheckPlayerDecks(roomID, settings, setting);
 
         expect(player.ready).toBe(false);
         expect(player.deck).toBe(null);
         expect(playerArr[0]).toBe(socket.id);
-
 
         // the deck is bigger than the settings 
         const socketid2 =  "ghu45DxGsxgy5VCls8Zs";// socket id of user2 
@@ -214,11 +213,7 @@ describe("lobby functions", () => {
             join: () => {}
         };
 
-   
-
         const lobby2 = CreateLobby(socket2, "testuser2");
-
-
 
         const roomID2 = `/${lobby2.id}`;
         JoinLobby({name: "test2"}, roomID2, socket2); 
@@ -229,12 +224,11 @@ describe("lobby functions", () => {
             deck.cards.push({name: `card${i}`, question: `question${i}`, answer: `answer${i}`});
         }
 
-
         const player2 = Rooms.get(roomID2).players.get(socket2.id);
         player2.ready = true 
         player2.deck = deck2; 
 
-        let playerArr2=CheckPlayerDecks(roomID, settings, setting);
+        let playerArr2 = CheckPlayerDecks(roomID, settings, setting);
 
         expect(player2.ready).toBe(true);
         expect(player2.deck).not.toBe(null);

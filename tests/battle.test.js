@@ -56,33 +56,33 @@ describe("Battle functions", () => {
         const socket1 = {
             id: "ojIckSD2jqNzOqIrAGzL", // id is 20 random chars.
             join: () => { },
-            to: (socketid) => {
+            to: () => {
                 return {
-                    emit: (event, arg) => {
+                    emit: () => {
                     }
                 };
             },
-            emit: (event, arg) => {
+            emit: () => {
             }
         };
         const socket2 = {
             id: "ghu45DxGsxgy5VCls8Zs", // id is 20 random chars.
             join: () => { },
-            to: (socketid) => {
+            to: () => {
                 return {
-                    emit: (event, arg) => {
+                    emit: () => {
                     }
                 };
             },
-            emit: (event, arg) => {
+            emit: () => {
             }
         };
 
         //create mock socket io event 
         const io = {
-            to: (socketid) => {
+            to: () => {
                 return {
-                    emit: (event, arg) => {
+                    emit: () => {
                     }
                 };
             }
@@ -193,32 +193,32 @@ describe("Battle functions", () => {
          const socket1 = {
             id: "ojIckSD2jqNzOqIrAGzL",
             join: () => { },
-            to: (socketid) => {
+            to: () => {
                 return {
-                    emit: (event, arg) => {}
+                    emit: () => {}
                 };
             },
-            emit: (event, arg) => {}
+            emit: () => {}
         };
         const socket2 = {
             id: "ghu45DxGsxgy5VCls8Zs", // id is 20 random chars.
             join: () => { },
-            to: (socketid) => {
+            to: () => {
                 return {
-                    emit: (event, arg) => {}
+                    emit: () => {}
                 };
             },
-            emit: (event, arg) => {}
+            emit: () => {}
         };
         const socket3 = {
             id: "ghu45DxGsxgy5VCls8Zg", // id is 20 random chars.
             join: () => { },
-            to: (socketid) => {
+            to: () => {
                 return {
-                    emit: (event, arg) => {}
+                    emit: () => {}
                 };
             },
-            emit: (event, arg) => {}
+            emit: () => {}
         };
 
         //create mock lobby
