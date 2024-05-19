@@ -236,7 +236,8 @@ function MapToArrayObj(map) {
  */
 function isSettingValid(SettingObj, roomID) {
     const setting = SettingObj.key;
-    const settings = Rooms.get(roomID).settings;
+    const Room = Rooms.get(roomID);
+    const settings = Room.settings;
     switch (setting) {
         case "deckSize":
             return SettingObj[setting] >= 5;
@@ -245,7 +246,7 @@ function isSettingValid(SettingObj, roomID) {
         case "life":
             return SettingObj[setting] >= 1 && SettingObj[setting] <= 10;
         case "lobbySize":
-            return SettingObj[setting] >= 2 && SettingObj[setting] <= 30;
+            return SettingObj[setting] >= 2 && SettingObj[setting] <= 30 && Room.players.size <= SettingObj[setting];
         default:
             return false;
     }
