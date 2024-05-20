@@ -12,11 +12,7 @@ describe("Battle functions", () => {
             id: socketid, // id is 20 random chars.
             join: () => { }
         };
-<<<<<<< HEAD
         //create lobby
-=======
-       
->>>>>>> 967fafd481c449dfa59e7f40ec913a150128a5d0
         const lobby = CreateLobby(socket, "testuser");
         const roomID = `/${lobby.id}`
         const roomData = Rooms.get(roomID)
