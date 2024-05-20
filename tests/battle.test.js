@@ -12,7 +12,7 @@ describe("Battle functions", () => {
             id: socketid, // id is 20 random chars.
             join: () => { }
         };
-        //create mock room
+       
         const lobby = CreateLobby(socket, "testuser");
         const roomID = `/${lobby.id}`
 
