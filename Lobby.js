@@ -1,6 +1,6 @@
 //import path from "path";
 import { Rooms, PlayerRooms } from "./index.js";
-export { CreateLobbyID, CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, DeleteLobby, ChangeDeckState, ShouldStartGame, PlayerReady, MapToArrayObj, isUsernameValid, CheckPlayerDecks, CalculateMaxDeckSize, checkValue };
+export { createLobbyID, createLobby, changeSettings, joinLobby, leaveLobby, deleteLobby, changeDeckState, shouldStartGame, playerReady, mapToArrayObj, isUsernameValid, checkPlayerDecks, calculateMaxDeckSize, checkValue };
 
 //* =================================================== host lobby =============================================================== *\\
 /**
@@ -9,8 +9,8 @@ export { CreateLobbyID, CreateLobby, ChangeSettings, JoinLobby, LeaveLobby, Dele
  * @param {*} displayName The name that the user entered which will be their username in the lobby
  * @returns an object that is sent client-side to the update the lobby accordingly
  */
-function CreateLobby(socket, displayName) {
-    const id = CreateLobbyID();
+function createLobby(socket, displayName) {
+    const id = createLobbyID();
     const roomID = `/${id}`;
     socket.join(roomID);
 
@@ -24,10 +24,10 @@ function CreateLobby(socket, displayName) {
         "life": 3,
         "lobbySize": 2
     };
-    let RoomObj = RoomStateObj(socket, displayName, settingsJson);
+    let RoomObj = roomStateObj(socket, displayName, settingsJson);
     Rooms.set(roomID, RoomObj);
 
-    const playerArr = MapToArrayObj(RoomObj.players);
+    const playerArr = mapToArrayObj(RoomObj.players);
     // Sends the default settings and id to the host
     return {
         ...settingsJson,
@@ -39,7 +39,7 @@ function CreateLobby(socket, displayName) {
  * Creates a lobby-id consisting of 6 numbers
  * @returns the id as a String
  */
-function CreateLobbyID() {
+function createLobbyID() {
     let id;
     do {
         id = "";
@@ -57,14 +57,14 @@ function CreateLobbyID() {
  * @param {*} Settings object containing the settings
  * @returns the room object
  */
-function RoomStateObj(socket, username, Settings) {
+function roomStateObj(socket, username, Settings) {
     // The lobby state is added to the rooms map as a value to the given room id
     let LobbyStateObj = {
         "players": new Map(),
         "settings": Settings,
         "turn": { current: undefined, next: undefined }
     };
-    LobbyStateObj.players.set(socket.id, CreatePlayer(username, true, socket.id));
+    LobbyStateObj.players.set(socket.id, createPlayer(username, true, socket.id));
     return LobbyStateObj;
 }
 
@@ -74,7 +74,7 @@ function RoomStateObj(socket, username, Settings) {
  * @returns boolean whether the setting was accepted or not
  */
 //change Settings
-function ChangeSettings(ChangeObj, Room) {
+function changeSettings(ChangeObj, Room) {
     const setting = ChangeObj.key;
     Room.settings[setting] = Number(ChangeObj[setting]);
 }
@@ -84,7 +84,7 @@ function ChangeSettings(ChangeObj, Room) {
  * @param {*} roomID Uses to read players id
  * @param {*} io Allows for access to the overall socket connection
  */
-function DeleteLobby(roomID, io) {
+function deleteLobby(roomID, io) {
     //Deletes the key-value pairs from the PlayerRooms map
     const players = Rooms.get(roomID).players
     for (const [id,] of players.entries()) {
@@ -101,7 +101,7 @@ function DeleteLobby(roomID, io) {
  * @returns true or false depending on weather the the conditions for the game to start is met
  */
 
-function ShouldStartGame(roomID) {
+function shouldStartGame(roomID) {
     const players = Rooms.get(roomID).players;
     if (players.size < 2) {
         return false;
@@ -121,12 +121,12 @@ function ShouldStartGame(roomID) {
  * @param {*} roomID is the id for the room
  * @returns an object
  */
-function PlayerReady(socketID, roomID) {
+function playerReady(socketID, roomID) {
     const Room = Rooms.get(roomID);
     const Player = Room.players.get(socketID);
 
     Player.ready = Player.deck !== null && !Player.ready;
-    return MapToArrayObj(Room.players);
+    return mapToArrayObj(Room.players);
 }
 
 /**
@@ -135,16 +135,16 @@ function PlayerReady(socketID, roomID) {
  * @param {*} PlayerObj Holds the players username
  * @param {*} socket Holds the players socket id.
  */
-function JoinLobby(PlayerObj, roomID, socket) {
+function joinLobby(PlayerObj, roomID, socket) {
     socket.join(roomID);
 
     const Players = Rooms.get(roomID).players;
-    const Player = CreatePlayer(PlayerObj.name, false, socket.id);
+    const Player = createPlayer(PlayerObj.name, false, socket.id);
 
     PlayerRooms.set(socket.id, roomID);
     Players.set(socket.id, Player);
 
-    return MapToArrayObj(Players);
+    return mapToArrayObj(Players);
 }
 
 /**
@@ -155,7 +155,7 @@ function JoinLobby(PlayerObj, roomID, socket) {
  * @param {*} Room puts the players id into a map.
  * @param {*} playersleftArr creates a new array with the updated map.
  */
-function LeaveLobby(socket, roomID) {
+function leaveLobby(socket, roomID) {
     //Delete the player from the PlayerRoom map
     PlayerRooms.delete(socket.id);
 
@@ -164,7 +164,7 @@ function LeaveLobby(socket, roomID) {
     Room.players.delete(socket.id);
     socket.leave(roomID);
 
-    const playersleftArr = MapToArrayObj(Room.players);
+    const playersleftArr = mapToArrayObj(Room.players);
     return playersleftArr;
 }
 
@@ -176,7 +176,7 @@ function LeaveLobby(socket, roomID) {
  * @param {*} roomID Id of the Room
  * @returns a boolean for whether the user is a host or not
  */
-function ChangeDeckState(deck, playerID, Room) {
+function changeDeckState(deck, playerID, Room) {
     if (deck.cards.length < Room.settings.deckSize) {
         return false;
     }
@@ -193,7 +193,7 @@ function ChangeDeckState(deck, playerID, Room) {
  * @param {*} flag to set whether the user is host or not
  * @returns the object
  */
-function CreatePlayer(username, flag, socketid) {
+function createPlayer(username, flag, socketid) {
     return {
         "id": socketid,
         "name": username,
@@ -210,7 +210,7 @@ function CreatePlayer(username, flag, socketid) {
  * @param {*} map contains an object as the value
  * @returns the created array
  */
-function MapToArrayObj(map) {
+function mapToArrayObj(map) {
     let array = [];
     for (const [key, value] of map.entries()) {
         array.push({
@@ -269,7 +269,7 @@ function isUsernameValid(username) {
     return true;
 }
 
-function CheckPlayerDecks(roomID, settings, setting) {
+function checkPlayerDecks(roomID, settings, setting) {
     const players = Rooms.get(roomID).players;
     let playersNotAccepted = [];
     for (const [id, playerData] of players.entries()) {
@@ -283,7 +283,7 @@ function CheckPlayerDecks(roomID, settings, setting) {
 }
 
 // Calculate the max deck size based on the players in the room
-function CalculateMaxDeckSize(roomData) {
+function calculateMaxDeckSize(roomData) {
     let maxCards = Math.min(...[...roomData.players.values()].map(player => player.deck.cards.length)); //Uses ...[] because math.min does not take an array, so ...[] splits it into indivual values
     return maxCards
 }

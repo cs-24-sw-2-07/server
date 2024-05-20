@@ -3,25 +3,25 @@ import express from "express";
 import http from "http";
 import { Server } from "socket.io";
 import {
-  CreateLobby,
-  ChangeSettings,
-  JoinLobby,
-  LeaveLobby,
-  DeleteLobby,
-  ChangeDeckState,
-  ShouldStartGame,
-  PlayerReady,
-  MapToArrayObj,
+  createLobby,
+  changeSettings,
+  joinLobby,
+  leaveLobby,
+  deleteLobby,
+  changeDeckState,
+  shouldStartGame,
+  playerReady,
+  mapToArrayObj,
   isUsernameValid,
-  CheckPlayerDecks,
-  CalculateMaxDeckSize,
+  checkPlayerDecks,
+  calculateMaxDeckSize,
   checkValue
 } from "./Lobby.js";
 import {
   removeCardFromHand,
   drawHand,
   checkWinner,
-  MapToPlayerLives,
+  mapToPlayerLives,
   nextPlayer,
   switchRoles,
 } from "./Battle.js";
@@ -56,15 +56,15 @@ io.on("connection", (socket) => {
       const roomData = Rooms.get(roomID);
       //Does the player have host status
       if (roomData.players.get(socket.id).host) {
-        socket.to(roomID).emit("LeaveLobby");
-        DeleteLobby(roomID, io);
+        socket.to(roomID).emit("leaveLobby");
+        deleteLobby(roomID, io);
       } else {
         // If game has already started, disconnect all clients from game, also if not a host and player is not dead.
         if (roomData.gameStarted && roomData.players.get(socket.id).lives > 0) {
-          socket.to(roomID).emit("LeaveLobby");
-          DeleteLobby(roomID, io);
+          socket.to(roomID).emit("leaveLobby");
+          deleteLobby(roomID, io);
         } else {
-          const players = LeaveLobby(socket, roomID);
+          const players = leaveLobby(socket, roomID);
           socket.to(roomID).emit("playerHandler", players);
         }
       }
@@ -75,30 +75,27 @@ io.on("connection", (socket) => {
   socket.on("createLobby", (username) => {
     if (isUsernameValid(username)) {
       console.log("Lobby was created by", socket.id);
-      const CreateLobbyObj = CreateLobby(socket, username);
-      socket.emit("lobby", CreateLobbyObj);
+      const createLobbyObj = createLobby(socket, username);
+      socket.emit("lobby", createLobbyObj);
     } else {
       socket.emit("invalidUsername");
     }
   });
-  socket.on("changeSettings", (UpdatedSettings) => {
+
+  socket.on("changeSettings", (updatedSettings) => {
     const roomID = PlayerRooms.get(socket.id);
-    const Room = Rooms.get(roomID);
-    const isPossible = checkValue(UpdatedSettings, Room);
-    socket.emit("changeSetting", isPossible);
-    if (isPossible.value === "") {
-      ChangeSettings(UpdatedSettings, Room);
-      socket.to(roomID).emit("changeSetting", UpdatedSettings);
+    const roomData = Rooms.get(roomID);
+    const settingValid = checkValue(updatedSettings, roomData);
+    socket.emit("changeSetting", settingValid);
+    if (settingValid.value === "") {
+      changeSettings(updatedSettings, roomData);
+      socket.to(roomID).emit("changeSetting", updatedSettings);
 
       //Check if the changed setting is the deck size
-      const setting = UpdatedSettings.key;
+      const setting = updatedSettings.key;
       if (setting === "deckSize") {
         //All players whose deck was not accepted will be in the array playersNotAccepted
-        const playersNotAccepted = CheckPlayerDecks(
-          roomID,
-          UpdatedSettings,
-          setting,
-        );
+        const playersNotAccepted = checkPlayerDecks(roomID, updatedSettings, setting);
         if (playersNotAccepted.length !== 0) {
           //Emit to the player that their deck is not valid anymore
           for (const playerID of playersNotAccepted) {
@@ -106,69 +103,74 @@ io.on("connection", (socket) => {
           }
 
           //Emit the updated player statuses
-          const players = Room.players;
-          const playersArr = MapToArrayObj(players);
+          const Players = roomData.players;
+          const playersArr = mapToArrayObj(Players);
           io.to(roomID).emit("playerHandler", playersArr);
         }
       }
     }
   });
-  socket.on("joinLobby", (Joined) => {
-    const roomID = `/${Joined.id}`;
-    const Room = Rooms.get(roomID);
-    if (Room && Room.players.size < Room.settings.lobbySize && !Room.gameStarted) {
-      if (isUsernameValid(Joined.name)) {
-        const playersArr = JoinLobby(Joined, roomID, socket);
+  
+  socket.on("joinLobby", (joined) => {
+    const roomID = `/${joined.id}`;
+    const roomData = Rooms.get(roomID);
+    if (roomData && roomData.players.size < roomData.settings.lobbySize && !roomData.gameStarted) {
+      if (isUsernameValid(joined.name)) {
+        const playersArr = joinLobby(joined, roomID, socket);
         socket.to(roomID).emit("playerHandler", playersArr);
 
         //Adds the current settings to the Object for the joining player
-        const JoinedreturnData = {
-          ...Room.settings,
-          id: Joined.id,
+        const joinedreturnData = {
+          ...roomData.settings,
+          id: joined.id,
           players: playersArr,
         };
-        socket.emit("lobby", JoinedreturnData);
-        console.log(Joined.name, "/", socket.id, "has joined the lobby with id:", roomID);
+        socket.emit("lobby", joinedreturnData);
+        console.log(joined.name, "/", socket.id, "has joined the lobby with id:", roomID);
       } else {
         socket.emit("invalidUsername");
       }
-    } else if (Room && !Room.gameStarted) {
-      socket.emit("RoomFull");
+    } else if (roomData && !roomData.gameStarted) {
+      socket.emit("roomFull");
     } else {
       socket.emit("roomNotExist");
     }
   });
+
   socket.on("lobbyLeave", () => {
     const roomID = PlayerRooms.get(socket.id);
-    const players = LeaveLobby(socket, roomID);
+    const players = leaveLobby(socket, roomID);
     socket.to(roomID).emit("playerHandler", players);
-    socket.emit("LeaveLobby");
+    socket.emit("leaveLobby");
   });
-  socket.on("changeDeck", (Deck) => {
+
+  socket.on("changeDeck", (deck) => {
     const roomID = PlayerRooms.get(socket.id);
     const Room = Rooms.get(roomID);
 
-    const isPossible = ChangeDeckState(Deck, socket.id, Room);
+    const isPossible = changeDeckState(deck, socket.id, Room);
 
     if (isPossible) {
       //Emit to other players that the host has readied up
-      const playerArr = MapToArrayObj(Room.players);
+      const playerArr = mapToArrayObj(Room.players);
       io.to(roomID).emit("playerHandler", playerArr);
 
-      socket.emit("changeDeck", Deck.name);
+      socket.emit("changeDeck", deck.name);
     } else {
       socket.emit("deckNotAccepted");
     }
   });
+
   socket.on("deleteLobby", () => {
     const roomID = PlayerRooms.get(socket.id);
-    io.to(roomID).emit("LeaveLobby");
-    DeleteLobby(roomID, io);
+    io.to(roomID).emit("leaveLobby");
+    deleteLobby(roomID, io);
   });
+
   //Listens for player ready and returns the players readyness status.
   socket.on("playerReady", () => {
     const roomID = PlayerRooms.get(socket.id);
-    const ReturnPlayerReady = PlayerReady(socket.id, roomID);
+    const ReturnPlayerReady = playerReady(socket.id, roomID);
     console.log("player", socket.id, "was ready"); //! Console log
     io.to(roomID).emit("playerHandler", ReturnPlayerReady);
   });
@@ -176,7 +178,7 @@ io.on("connection", (socket) => {
   //Listens for a 'startGame' event and either emits a 'startedGame' event to all clients in a room if conditions are met, or sends a 'cantStartGame' event to the initiating client if not.
   socket.on("startGame", () => {
     const roomID = PlayerRooms.get(socket.id);
-    if (ShouldStartGame(roomID)) {
+    if (shouldStartGame(roomID)) {
       const roomData = Rooms.get(roomID);
 
       //give each player lives according to settings
@@ -200,10 +202,10 @@ io.on("connection", (socket) => {
       roomData.turn.next = nextPlayer(roomData);
 
       // Calculate the minimum amount of cards present in all decks
-      roomData.maxDeckSize = CalculateMaxDeckSize(roomData);
+      roomData.maxDeckSize = calculateMaxDeckSize(roomData);
       roomData.gameStarted = true;
 
-      const playerLives = MapToPlayerLives(roomData.players);
+      const playerLives = mapToPlayerLives(roomData.players);
       const startedGameData = {
         playerLives: playerLives,
         maxLives: lifeAmount,
@@ -249,14 +251,14 @@ io.on("connection", (socket) => {
     // remove life if answer its incorrect from player room.turn.next
     if (!correctAnswer) {
       roomData.players.get(roomData.turn.next).lives--;
-      const lifeUpdateData = MapToPlayerLives(roomData.players);
+      const lifeUpdateData = mapToPlayerLives(roomData.players);
       io.to(roomID).emit("lifeUpdate", lifeUpdateData);
       io.to(roomData.turn.next).emit("wrongAnswered");
     }
 
     if (checkWinner(roomID, roomData, socket, io)) {
       console.log("Delete lobby made by", socket.id);
-      return DeleteLobby(roomID, io);
+      return deleteLobby(roomID, io);
     }
 
     switchRoles(roomID, roomData, socket);
