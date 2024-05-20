@@ -12,14 +12,14 @@ describe("Battle functions", () => {
             id: socketid, // id is 20 random chars.
             join: () => { }
         };
-        //create mock room
+        //create lobby
         const lobby = CreateLobby(socket, "testuser");
         const roomID = `/${lobby.id}`
-
-        Rooms.get(roomID).players.get(socketid).hand = [1, 2, 3, 4, 5];
+        const roomData = Rooms.get(roomID)
+        roomData.players.get(socketid).hand = [1, 2, 3, 4, 5];
 
         removeCardFromHand(socket.id, 1, roomID)
-        expect(Rooms.get(roomID).players.get(socketid).hand).toStrictEqual([1, 3, 4, 5]);
+        expect(roomData.players.get(socketid).hand).toStrictEqual([1, 3, 4, 5]);
     })
 
     it("map player lives", () => {
@@ -32,14 +32,16 @@ describe("Battle functions", () => {
             id: "ghu45DxGsxgy5VCls8Zs", // id is 20 random chars.
             join: () => { }
         };
+        //create lobby
         const lobby = CreateLobby(socket1, "testuser");
         const roomID = `/${lobby.id}`;
         JoinLobby({ name: "testuser2", id: roomID }, roomID, socket2)
         //give players lives
-        Rooms.get(roomID).players.get(socket1.id).lives = 4;
-        Rooms.get(roomID).players.get(socket2.id).lives = 6;
+        const playerData = Rooms.get(roomID).players
+        playerData.get(socket1.id).lives = 4;
+        playerData.get(socket2.id).lives = 6;
 
-        const playerArr = MapToPlayerLives(Rooms.get(roomID).players);
+        const playerArr = MapToPlayerLives(playerData);
         // Testing data on the array
         expect(playerArr[0].lives).toBe(4)
         expect(playerArr[1].lives).toBe(6)
@@ -88,64 +90,65 @@ describe("Battle functions", () => {
             }
         };
 
-        //create mock lobby
+        //create lobby
         const lobby = CreateLobby(socket1, "testuser");
         const roomID = `/${lobby.id}`;
         JoinLobby({ name: "testuser2", id: roomID }, roomID, socket2)
 
         let roomData = Rooms.get(roomID);
-
+        const player1Data=roomData.players.get(socket1.id)
+        const player2Data=roomData.players.get(socket2.id)
         //give players lives
-        roomData.players.get(socket1.id).lives = 4;
-        roomData.players.get(socket2.id).lives = 4;
+        player1Data.lives = 4;
+        player2Data.lives = 4;
 
         roomData.startedGame = true;
 
         // Sets up the game data and tests it
         roomData.maxDeckSize = 7;
-        roomData.players.get(socket1.id).usedCards = [1, 2, 3, 4, 5, 6, 7];
-        roomData.players.get(socket2.id).usedCards = [1, 2, 3, 4, 5, 6, 7];
-        roomData.players.get(socket1.id).hand = [];
-        roomData.players.get(socket2.id).hand = [];
+        player1Data.usedCards = [1, 2, 3, 4, 5, 6, 7];
+        player2Data.usedCards = [1, 2, 3, 4, 5, 6, 7];
+        player1Data.hand = [];
+        player2Data.hand = [];
 
-        let winnerValue = checkWinner(roomID, Rooms.get(roomID), socket1, io)
+        let winnerValue = checkWinner(roomID, roomData, socket1, io)
         expect(winnerValue).toBe(true)
 
         //give players lives
-        roomData.players.get(socket1.id).lives = 6;
-        roomData.players.get(socket2.id).lives = 4;
+        player1Data.lives = 6;
+        player2Data.lives = 4;
 
         roomData.startedGame = true;
 
         // Sets up the game data and tests it
         roomData.maxDeckSize = 7;
-        roomData.players.get(socket1.id).usedCards = [1, 2, 3, 4, 5, 6, 7];
-        roomData.players.get(socket2.id).usedCards = [1, 2, 3, 4, 5, 6, 7];
-        roomData.players.get(socket1.id).hand = [];
-        roomData.players.get(socket2.id).hand = [];
+        player1Data.usedCards = [1, 2, 3, 4, 5, 6, 7];
+        player2Data.usedCards = [1, 2, 3, 4, 5, 6, 7];
+        player1Data.hand = [];
+        player2Data.hand = [];
 
-        winnerValue = checkWinner(roomID, Rooms.get(roomID), socket1, io)
+        winnerValue = checkWinner(roomID, roomData, socket1, io)
         expect(winnerValue).toBe(true)
 
         // Sets up the game data and tests it
         roomData.maxDeckSize = 7;
-        roomData.players.get(socket1.id).usedCards = [1, 2, 3, 4, 5];
-        roomData.players.get(socket2.id).usedCards = [1, 2, 3, 4, 5];
-        roomData.players.get(socket1.id).hand = [6, 7];
-        roomData.players.get(socket2.id).hand = [6, 7];
+        player1Data.usedCards = [1, 2, 3, 4, 5];
+        player2Data.usedCards = [1, 2, 3, 4, 5];
+        player1Data.hand = [6, 7];
+        player2Data.hand = [6, 7];
 
-        winnerValue = checkWinner(roomID, Rooms.get(roomID), socket1, io)
+        winnerValue = checkWinner(roomID, roomData, socket1, io)
         expect(winnerValue).toBe(false)
 
         // Sets up the game data and tests it
         roomData.maxDeckSize = 7;
-        roomData.players.get(socket1.id).usedCards = [1, 2, 3, 4, 5];
-        roomData.players.get(socket2.id).usedCards = [1, 2, 3, 4, 5];
-        roomData.players.get(socket1.id).hand = [6, 7];
-        roomData.players.get(socket2.id).hand = [6, 7];
-        roomData.players.get(socket2.id).lives = 0;
+        player1Data.usedCards = [1, 2, 3, 4, 5];
+        player2Data.usedCards = [1, 2, 3, 4, 5];
+        player1Data.hand = [6, 7];
+        player2Data.hand = [6, 7];
+        player2Data.lives = 0;
 
-        winnerValue = checkWinner(roomID, Rooms.get(roomID), socket1, io)
+        winnerValue = checkWinner(roomID, roomData, socket1, io)
         expect(winnerValue).toBe(true)
     })
 
@@ -163,7 +166,7 @@ describe("Battle functions", () => {
             join: () => {},
         };
 
-        //create mock lobby
+        //create lobby
         const lobby = CreateLobby(socket1, "testuser");
         const roomID = `/${lobby.id}`;
         JoinLobby({ name: "testuser2", id: roomID }, roomID, socket2)
@@ -221,16 +224,20 @@ describe("Battle functions", () => {
             emit: () => {}
         };
 
-        //create mock lobby
+        //create lobby
         const lobby = CreateLobby(socket1, "testuser");
         const roomID = `/${lobby.id}`;
         JoinLobby({ name: "testuser2", id: roomID }, roomID, socket2)
         JoinLobby({ name: "testuser3", id: roomID }, roomID, socket3)
         let roomData = Rooms.get(roomID);
 
-        roomData.players.get(socket1.id).lives = 1;
-        roomData.players.get(socket2.id).lives = 1;
-        roomData.players.get(socket3.id).lives = 1;
+        const player1Data = roomData.players.get(socket1.id)
+        const player2Data = roomData.players.get(socket2.id)
+        const player3Data = roomData.players.get(socket3.id)
+        // Checks if it works with 3 players
+        player1Data.lives = 1;
+        player2Data.lives = 1;
+        player3Data.lives = 1;
         roomData.turn = {current: null, next: null}
 
         roomData.turn.current = socket1.id;
@@ -240,9 +247,10 @@ describe("Battle functions", () => {
         expect(roomData.turn.current).toBe(socket2.id)
         expect(roomData.turn.next).toBe(socket3.id)
 
-        roomData.players.get(socket1.id).lives = 1;
-        roomData.players.get(socket2.id).lives = 0;
-        roomData.players.get(socket3.id).lives = 1;
+        // Checks if it works with the turn.next being dead
+        player1Data.lives = 1;
+        player2Data.lives = 0;
+        player3Data.lives = 1;
         roomData.turn = {current: null, next: null}
 
         roomData.turn.current = socket1.id;
@@ -259,7 +267,7 @@ describe("Battle functions", () => {
             join: () => {},
         };
 
-        //create mock lobby
+        //create lobby
         const lobby = CreateLobby(socket1, "testuser");
         const roomID = `/${lobby.id}`;
         const roomData = Rooms.get(roomID);
@@ -275,7 +283,6 @@ describe("Battle functions", () => {
                 { rating: 5 },
             ] //Average: (1+2+3+4+5) / 5 = 3 
         }
-        //3 +- 1 = between 2 and 4 
         //Draw hand function call here
         let hand = drawHand(player1.deck, 3);
         expect(hand.length).toBe(3); 
@@ -352,10 +359,13 @@ describe("Battle functions", () => {
         JoinLobby({ name: "testuser2", id: roomID }, roomID, socket2)
         JoinLobby({ name: "testuser3", id: roomID }, roomID, socket3)
         const roomData = Rooms.get(roomID);
+        const player1Data = roomData.players.get(socket1.id)
+        const player2Data = roomData.players.get(socket2.id)
+        const player3Data = roomData.players.get(socket3.id)
 
-        roomData.players.get(socket1.id).lives = 5;
-        roomData.players.get(socket2.id).lives = 5;
-        roomData.players.get(socket3.id).lives = 5;        
+        player1Data.lives = 5;
+        player2Data.lives = 5;
+        player3Data.lives = 5;        
 
         roomData.turn = {next: "ghu45DxGsxgy5VCls8Zs"}; //Socket 2
         let performance1 = computeOppPerformance(roomData, socket1.id);
@@ -368,9 +378,9 @@ describe("Battle functions", () => {
         expect(performance3).toBe(0); 
 
 
-        roomData.players.get(socket1.id).lives = 1;
-        roomData.players.get(socket2.id).lives = 2;
-        roomData.players.get(socket3.id).lives = 6;
+        player1Data.lives = 1;
+        player2Data.lives = 2;
+        player3Data.lives = 6;
         //Average = (1+2+6) / 3 = 3
 
         roomData.turn = {next: "ghu45DxGsxgy5VCls8Zs"}; //Socket 2

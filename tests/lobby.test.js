@@ -182,17 +182,23 @@ describe("lobby functions", () => {
             id: socketid, // id is 20 random chars.
             join: () => {}
         };
+        const socketid2 =  "ghu45DxGsxgy5VCls8Zs";// socket id of user2 
+        
+        const socket2 = {
+            id: socketid2, // id is 20 random chars.
+            join: () => {}
+        };
 
         const lobby = CreateLobby(socket, "testuser");
         const roomID = `/${lobby.id}`;
-        JoinLobby({name: "test"}, roomID, socket); 
+        JoinLobby({name: "test"}, roomID, socket2); 
 
         const deck = { name: "test deck", cards: [] };
         for(let i = 0; i < 5; i++) {
             deck.cards.push({name: `card${i}`, question: `question${i}`, answer: `answer${i}`});
         }
-        const player = Rooms.get(roomID).players.get(socket.id);
-        player.deck = deck; 
+        const player1 = Rooms.get(roomID).players.get(socket.id);
+        player1.deck = deck; 
 
         const setting = "deckSize"; 
         const settings = {
@@ -201,31 +207,18 @@ describe("lobby functions", () => {
         
         let playerArr = CheckPlayerDecks(roomID, settings, setting);
 
-        expect(player.ready).toBe(false);
-        expect(player.deck).toBe(null);
+        expect(player1.ready).toBe(false);
+        expect(player1.deck).toBe(null);
         expect(playerArr[0]).toBe(socket.id);
 
         // the deck is bigger than the settings 
-        const socketid2 =  "ghu45DxGsxgy5VCls8Zs";// socket id of user2 
-        
-        const socket2 = {
-            id: socketid2, // id is 20 random chars.
-            join: () => {}
-        };
-
-        const lobby2 = CreateLobby(socket2, "testuser2");
-
-        const roomID2 = `/${lobby2.id}`;
-        JoinLobby({name: "test2"}, roomID2, socket2); 
-      
-
         const deck2 = { name: "test deck2", cards: [] };
         for(let i = 0; i < 12; i++) {
-            deck.cards.push({name: `card${i}`, question: `question${i}`, answer: `answer${i}`});
+            deck2.cards.push({name: `card${i}`, question: `question${i}`, answer: `answer${i}`});
         }
 
-        const player2 = Rooms.get(roomID2).players.get(socket2.id);
-        player2.ready = true 
+        const player2 = Rooms.get(roomID).players.get(socket2.id);
+        player2.ready = true;
         player2.deck = deck2; 
 
         let playerArr2 = CheckPlayerDecks(roomID, settings, setting);
@@ -233,7 +226,6 @@ describe("lobby functions", () => {
         expect(player2.ready).toBe(true);
         expect(player2.deck).not.toBe(null);
         expect(playerArr2.length).toBe(0);
-
     });
 
     it("Change deck setting", () => {
