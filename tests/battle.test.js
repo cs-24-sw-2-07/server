@@ -96,8 +96,8 @@ describe("Battle functions", () => {
         JoinLobby({ name: "testuser2", id: roomID }, roomID, socket2)
 
         let roomData = Rooms.get(roomID);
-        const player1Data=roomData.players.get(socket1.id)
-        const player2Data=roomData.players.get(socket2.id)
+        const player1Data = roomData.players.get(socket1.id)
+        const player2Data = roomData.players.get(socket2.id)
         //give players lives
         player1Data.lives = 4;
         player2Data.lives = 4;
@@ -155,15 +155,15 @@ describe("Battle functions", () => {
     it("find next player", () => {
         const socket1 = {
             id: "ojIckSD2jqNzOqIrAGzL", // id is 20 random chars.
-            join: () => {},
+            join: () => { },
         };
         const socket2 = {
             id: "ghu45DxGsxgy5VCls8Zs", // id is 20 random chars.
-            join: () => {},
+            join: () => { },
         };
         const socket3 = {
             id: "ghu45DxGsxgy5VCls8Zg", // id is 20 random chars.
-            join: () => {},
+            join: () => { },
         };
 
         //create lobby
@@ -176,52 +176,52 @@ describe("Battle functions", () => {
         roomData.players.get(socket1.id).lives = 1;
         roomData.players.get(socket2.id).lives = 1;
         roomData.players.get(socket3.id).lives = 1;
-        roomData.turn = {current: null, next: null}
+        roomData.turn = { current: null, next: null }
 
         roomData.turn.current = socket1.id;
         roomData.turn.next = nextPlayer(roomData);
         expect(roomData.turn.next).toBe(socket2.id)
 
-        roomData.turn.current =  roomData.turn.next;
+        roomData.turn.current = roomData.turn.next;
         roomData.turn.next = nextPlayer(roomData);
         expect(roomData.turn.next).toBe(socket3.id)
 
-        roomData.turn.current =  roomData.turn.next;
+        roomData.turn.current = roomData.turn.next;
         roomData.turn.next = nextPlayer(roomData);
         expect(roomData.turn.next).toBe(socket1.id)
     })
 
     it("switch roles", () => {
-         // create mock socket objects
-         const socket1 = {
+        // create mock socket objects
+        const socket1 = {
             id: "ojIckSD2jqNzOqIrAGzL",
             join: () => { },
             to: () => {
                 return {
-                    emit: () => {}
+                    emit: () => { }
                 };
             },
-            emit: () => {}
+            emit: () => { }
         };
         const socket2 = {
             id: "ghu45DxGsxgy5VCls8Zs", // id is 20 random chars.
             join: () => { },
             to: () => {
                 return {
-                    emit: () => {}
+                    emit: () => { }
                 };
             },
-            emit: () => {}
+            emit: () => { }
         };
         const socket3 = {
             id: "ghu45DxGsxgy5VCls8Zg", // id is 20 random chars.
             join: () => { },
             to: () => {
                 return {
-                    emit: () => {}
+                    emit: () => { }
                 };
             },
-            emit: () => {}
+            emit: () => { }
         };
 
         //create lobby
@@ -238,12 +238,12 @@ describe("Battle functions", () => {
         player1Data.lives = 1;
         player2Data.lives = 1;
         player3Data.lives = 1;
-        roomData.turn = {current: null, next: null}
+        roomData.turn = { current: null, next: null }
 
         roomData.turn.current = socket1.id;
         roomData.turn.next = socket2.id;
         switchRoles(roomID, roomData, socket1);
-              
+
         expect(roomData.turn.current).toBe(socket2.id)
         expect(roomData.turn.next).toBe(socket3.id)
 
@@ -251,12 +251,12 @@ describe("Battle functions", () => {
         player1Data.lives = 1;
         player2Data.lives = 0;
         player3Data.lives = 1;
-        roomData.turn = {current: null, next: null}
+        roomData.turn = { current: null, next: null }
 
         roomData.turn.current = socket1.id;
         roomData.turn.next = socket2.id;
         switchRoles(roomID, roomData, socket1);
-              
+
         expect(roomData.turn.current).toBe(socket3.id)
         expect(roomData.turn.next).toBe(socket1.id)
     });
@@ -264,7 +264,7 @@ describe("Battle functions", () => {
     it("Draw a hand", () => {
         const socket1 = {
             id: "ojIckSD2jqNzOqIrAGzL", // id is 20 random chars.
-            join: () => {},
+            join: () => { },
         };
 
         //create lobby
@@ -285,19 +285,19 @@ describe("Battle functions", () => {
         }
         //Draw hand function call here
         let hand = drawHand(player1.deck, 3);
-        expect(hand.length).toBe(3); 
+        expect(hand.length).toBe(3);
         expect(hand).not.toContain(6);
 
         hand = drawHand(player1.deck, 4);
         expect(hand.length).toBe(4);
         expect(hand).not.toContain(6);
-        
+
     });
 
     it("Draw a card", () => {
         const socket1 = {
             id: "ojIckSD2jqNzOqIrAGzL", // id is 20 random chars.
-            join: () => {},
+            join: () => { },
         };
         const lobby = CreateLobby(socket1, "testuser");
         const roomID = `/${lobby.id}`;
@@ -321,21 +321,21 @@ describe("Battle functions", () => {
         player1.hand = [1, 2, 3];
 
         //The opponent has the average rating
-        let opponentPerformance = 0; 
-        let maxLives = 5; 
-        let newCard = drawCard(opponentPerformance, player1.deck, 
+        let opponentPerformance = 0;
+        let maxLives = 5;
+        let newCard = drawCard(opponentPerformance, player1.deck,
             player1.usedCards, player1.hand, maxLives);
-        
+
         expect(player1.usedCards).not.toContain(newCard);
         expect(player1.hand).not.toContain(newCard);
 
-        opponentPerformance = 5; 
-        newCard = drawCard(opponentPerformance, player1.deck, 
+        opponentPerformance = 5;
+        newCard = drawCard(opponentPerformance, player1.deck,
             player1.usedCards, player1.hand, maxLives);
         expect(newCard).toBe(8);
 
-        opponentPerformance = -5; 
-        newCard = drawCard(opponentPerformance, player1.deck, 
+        opponentPerformance = -5;
+        newCard = drawCard(opponentPerformance, player1.deck,
             player1.usedCards, player1.hand, maxLives);
         expect(newCard).not.toBe(8);
     });
@@ -343,15 +343,15 @@ describe("Battle functions", () => {
     it("Calculate opponent performance", () => {
         const socket1 = {
             id: "ojIckSD2jqNzOqIrAGzL", // id is 20 random chars.
-            join: () => {},
+            join: () => { },
         };
         const socket2 = {
             id: "ghu45DxGsxgy5VCls8Zs", // id is 20 random chars.
-            join: () => {},
+            join: () => { },
         };
         const socket3 = {
             id: "ghu45DxGsxgy5VCls8Zg", // id is 20 random chars.
-            join: () => {},
+            join: () => { },
         };
 
         const lobby = CreateLobby(socket1, "testuser");
@@ -365,17 +365,17 @@ describe("Battle functions", () => {
 
         player1Data.lives = 5;
         player2Data.lives = 5;
-        player3Data.lives = 5;        
+        player3Data.lives = 5;
 
-        roomData.turn = {next: "ghu45DxGsxgy5VCls8Zs"}; //Socket 2
+        roomData.turn = { next: "ghu45DxGsxgy5VCls8Zs" }; //Socket 2
         let performance1 = computeOppPerformance(roomData, socket1.id);
-        roomData.turn = {next: "ghu45DxGsxgy5VCls8Zg"}; //Socket 3
+        roomData.turn = { next: "ghu45DxGsxgy5VCls8Zg" }; //Socket 3
         let performance2 = computeOppPerformance(roomData, socket2.id);
-        roomData.turn = {next: "ojIckSD2jqNzOqIrAGzL"}; //Socket 1
+        roomData.turn = { next: "ojIckSD2jqNzOqIrAGzL" }; //Socket 1
         let performance3 = computeOppPerformance(roomData, socket3.id);
-        expect(performance1).toBe(0); 
-        expect(performance2).toBe(0); 
-        expect(performance3).toBe(0); 
+        expect(performance1).toBe(0);
+        expect(performance2).toBe(0);
+        expect(performance3).toBe(0);
 
 
         player1Data.lives = 1;
@@ -383,11 +383,11 @@ describe("Battle functions", () => {
         player3Data.lives = 6;
         //Average = (1+2+6) / 3 = 3
 
-        roomData.turn = {next: "ghu45DxGsxgy5VCls8Zs"}; //Socket 2
+        roomData.turn = { next: "ghu45DxGsxgy5VCls8Zs" }; //Socket 2
         performance1 = computeOppPerformance(roomData, socket1.id);
-        roomData.turn = {next: "ghu45DxGsxgy5VCls8Zg"}; //Socket 3
+        roomData.turn = { next: "ghu45DxGsxgy5VCls8Zg" }; //Socket 3
         performance2 = computeOppPerformance(roomData, socket2.id);
-        roomData.turn = {next: "ojIckSD2jqNzOqIrAGzL"}; //Socket 1
+        roomData.turn = { next: "ojIckSD2jqNzOqIrAGzL" }; //Socket 1
         performance3 = computeOppPerformance(roomData, socket3.id);
         expect(performance1).toBe(0); // (2 - 1) + (2 - 3) = 0 
         expect(performance2).toBe(7); // (6 - 2) + (6 - 3) = 7

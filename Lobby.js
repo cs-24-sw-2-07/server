@@ -224,36 +224,36 @@ function MapToArrayObj(map) {
 }
 
 function checkValue(settingObj, Room) {
-    const settingKey = settingObj.key; 
+    const settingKey = settingObj.key;
     const setting = settingObj[settingKey];
-    
-    let maximum; 
+
+    let maximum;
     let minimum;
-    switch(settingKey) {
+    switch (settingKey) {
         case "deckSize":
             minimum = 5;
-            maximum = Number.MAX_SAFE_INTEGER; 
-            break; 
+            maximum = Number.MAX_SAFE_INTEGER;
+            break;
         case "handSize":
             minimum = 3;
-            maximum = Room.settings.deckSize; 
-            break; 
+            maximum = Room.settings.deckSize;
+            break;
         case "life":
             minimum = 1;
-            maximum = 10; 
-            break; 
+            maximum = 10;
+            break;
         case "lobbySize":
             minimum = Room.players.size >= 2 ? Room.players.size : 2;
-            maximum = 30; 
-            break; 
+            maximum = 30;
+            break;
     }
-    let value; 
+    let value;
     if (Number(setting) > maximum) {
         value = "Setting is set too large";
     } else if (Number(setting) < minimum) {
         value = "Setting is set too small";
     } else {
-        value = ""; 
+        value = "";
     }
 
     return {
