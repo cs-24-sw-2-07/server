@@ -85,11 +85,11 @@ io.on("connection", (socket) => {
     const roomID = PlayerRooms.get(socket.id);
     const Room = Rooms.get(roomID);
     const isPossible = checkValue(UpdatedSettings, Room);
-    socket.emit("changeSetting", isPossible); 
+    socket.emit("changeSetting", isPossible);
     if (isPossible.value === "") {
       ChangeSettings(UpdatedSettings, Room);
       socket.to(roomID).emit("changeSetting", UpdatedSettings);
-      
+
       //Check if the changed setting is the deck size
       const setting = UpdatedSettings.key;
       if (setting === "deckSize") {
@@ -128,7 +128,7 @@ io.on("connection", (socket) => {
           players: playersArr,
         };
         socket.emit("lobby", JoinedreturnData);
-        console.log(Joined.name,"/",socket.id, "has joined the lobby with id:", roomID);
+        console.log(Joined.name, "/", socket.id, "has joined the lobby with id:", roomID);
       } else {
         socket.emit("invalidUsername");
       }
@@ -232,7 +232,7 @@ io.on("connection", (socket) => {
       .to(roomID)
       .emit("cardPicked", player.deck.cards[player.hand[data.cardID]]);
     removeCardFromHand(socket.id, data.cardID, roomID);
-	
+
   });
 
   // Used when a user is done answering a question

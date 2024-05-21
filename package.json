@@ -8,8 +8,8 @@
     "start": "node index.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test": "vitest run",
-    "coverage": "vitest run --coverage"
+    "test": "vitest run --fileParallelism=false",
+    "coverage": "vitest run --coverage --fileParallelism=false"
   },
   "author": "",
   "license": "ISC",

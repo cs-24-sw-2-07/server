@@ -1,5 +1,5 @@
 import { PlayerRooms, Rooms } from "./index.js";
-export { drawHand, removeCardFromHand, checkWinner, MapToPlayerLives, nextPlayer, switchRoles };
+export { drawHand, removeCardFromHand, checkWinner, MapToPlayerLives, nextPlayer, switchRoles, drawCard, computeOppPerformance };
 
 //make a starting hand
 function drawHand(deck, handSize) {
@@ -10,17 +10,17 @@ function drawHand(deck, handSize) {
     randomRating = Math.min(Math.max(randomRating, 1), 5);
 
     //Makes an array of cards adding the index from the deck
-    const cards = deck.cards.map((card,index) => ({...card, index: index}));
+    const cards = deck.cards.map((card, index) => ({ ...card, index: index }));
 
     //Sorts the cards after the randomized rating that puts the cards, which rating closes matches the random rating, at the end
     const sortFunc = (a, b) => Math.abs(randomRating - b.rating) - Math.abs(randomRating - a.rating);
     const cardsSorted = cards.sort(sortFunc);
     //The indexes of the cards that closes match the random rating are added to the hand array. 
     let hand = [];
-    for(let i = 0; i < handSize; i++){
-        hand.push(cardsSorted.pop().index); 
+    for (let i = 0; i < handSize; i++) {
+        hand.push(cardsSorted.pop().index);
     }
-    return hand; 
+    return hand;
 }
 
 function removeCardFromHand(playerID, usedIndex, roomID) {
@@ -35,13 +35,13 @@ function removeCardFromHand(playerID, usedIndex, roomID) {
 function drawCard(oppPerformance, deck, usedCards, handCards, maxLives) {
     let newCardRating = new Array(2);
     //check if the new card on the hand should be harder or easier
-    if(oppPerformance >= 0) { 
-        const middlePerformance = maxLives / 2; 
-        if(oppPerformance >= middlePerformance){
+    if (oppPerformance >= 0) {
+        const middlePerformance = maxLives / 2;
+        if (oppPerformance >= middlePerformance) {
             newCardRating[0] = 5;
             newCardRating[1] = 4;
         }
-        else{
+        else {
             newCardRating[0] = 4;
             newCardRating[1] = 3;
         }
@@ -58,17 +58,17 @@ function drawCard(oppPerformance, deck, usedCards, handCards, maxLives) {
     }
 
     //make an array where each card also has their index as a key/value pair
-    const cards = deck.cards.map((card,index) => ({...card, index: index}));
+    const cards = deck.cards.map((card, index) => ({ ...card, index: index }));
     //find all the cards that have not been played
-    const unusedCards = cards.filter(card => !(handCards.includes(card.index) || usedCards.includes(card.index))); 
+    const unusedCards = cards.filter(card => !(handCards.includes(card.index) || usedCards.includes(card.index)));
     //find cards that match the rating we want
-    const candidates = unusedCards.filter(card => card.rating === newCardRating[0] 
-                                                || card.rating === newCardRating[1]);
-    
-    if(candidates.length === 0) {
-       return unusedCards[Math.floor(Math.random()*unusedCards.length)].index;
+    const candidates = unusedCards.filter(card => card.rating === newCardRating[0]
+        || card.rating === newCardRating[1]);
+
+    if (candidates.length === 0) {
+        return unusedCards[Math.floor(Math.random() * unusedCards.length)].index;
     }
-    return candidates[Math.floor(Math.random()*candidates.length)].index;    
+    return candidates[Math.floor(Math.random() * candidates.length)].index;
 }
 
 function MapToPlayerLives(map) {
@@ -148,8 +148,8 @@ function switchRoles(roomID, roomData, socket) {
 }
 
 function computeOppPerformance(roomData, playerID) {
-    const opponentID = roomData.turn.next; 
-    const players = Rooms.get(PlayerRooms.get(opponentID)).players; 
+    const opponentID = roomData.turn.next;
+    const players = Rooms.get(PlayerRooms.get(opponentID)).players;
     const opponent = players.get(opponentID);
     const player = players.get(playerID);
 
