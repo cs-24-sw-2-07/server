@@ -184,13 +184,10 @@ io.on("connection", (socket) => {
       //give each player lives according to settings
       let lifeAmount = roomData.settings.life;
 
-      //Give each player a starting hand
-      
-      // ! See if this works
-      //give players correct information
+      //give players correct information and draw their hand
       for (let [playerid, player] of roomData.players.entries()) {
         let hand = drawHand(
-          roomData.players.get(socket.id).deck,
+          player.deck,
           roomData.settings.handSize,
         );
         player.lives = lifeAmount;
