@@ -122,11 +122,11 @@ function shouldStartGame(roomID) {
  * @returns an object
  */
 function playerReady(socketID, roomID) {
-    const Room = Rooms.get(roomID);
-    const Player = Room.players.get(socketID);
+    const roomData = Rooms.get(roomID);
+    const player = roomData.players.get(socketID);
 
-    Player.ready = Player.deck !== null && !Player.ready;
-    return mapToArrayObj(Room.players);
+    player.ready = player.deck !== null && !player.ready;
+    return mapToArrayObj(roomData.players);
 }
 
 /**

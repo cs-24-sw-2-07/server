@@ -146,13 +146,13 @@ io.on("connection", (socket) => {
 
   socket.on("changeDeck", (deck) => {
     const roomID = PlayerRooms.get(socket.id);
-    const Room = Rooms.get(roomID);
+    const roomData = Rooms.get(roomID);
 
-    const isPossible = changeDeckState(deck, socket.id, Room);
+    const isPossible = changeDeckState(deck, socket.id, roomData);
 
     if (isPossible) {
       //Emit to other players that the host has readied up
-      const playerArr = mapToArrayObj(Room.players);
+      const playerArr = mapToArrayObj(roomData.players);
       io.to(roomID).emit("playerHandler", playerArr);
 
       socket.emit("changeDeck", deck.name);
@@ -170,9 +170,9 @@ io.on("connection", (socket) => {
   //Listens for player ready and returns the players readyness status.
   socket.on("playerReady", () => {
     const roomID = PlayerRooms.get(socket.id);
-    const ReturnPlayerReady = playerReady(socket.id, roomID);
-    console.log("player", socket.id, "was ready"); //! Console log
-    io.to(roomID).emit("playerHandler", ReturnPlayerReady);
+    const playerReadyStatus = playerReady(socket.id, roomID);
+    console.log("player", socket.id, "was ready"); 
+    io.to(roomID).emit("playerHandler", playerReadyStatus);
   });
 
   //Listens for a 'startGame' event and either emits a 'startedGame' event to all clients in a room if conditions are met, or sends a 'cantStartGame' event to the initiating client if not.
@@ -185,13 +185,14 @@ io.on("connection", (socket) => {
       let lifeAmount = roomData.settings.life;
 
       //Give each player a starting hand
-      let hand = drawHand(
-        roomData.players.get(socket.id).deck,
-        roomData.settings.handSize,
-      );
-
+      
+      // ! See if this works
       //give players correct information
       for (let [playerid, player] of roomData.players.entries()) {
+        let hand = drawHand(
+          roomData.players.get(socket.id).deck,
+          roomData.settings.handSize,
+        );
         player.lives = lifeAmount;
         player.hand = [...hand];
 
