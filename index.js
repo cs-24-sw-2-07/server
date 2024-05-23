@@ -233,6 +233,7 @@ io.on("connection", (socket) => {
       .emit("cardPicked", player.deck.cards[player.hand[data.cardID]]);
     removeCardFromHand(socket.id, data.cardID, roomID);
 
+
   });
 
   // Used when a user is done answering a question
