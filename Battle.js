@@ -125,9 +125,9 @@ function checkWinner(roomID, roomData, socket, io) {
     return false;
 }
 
-function nextPlayer(room) {
-    let playersLeft = mapToPlayerLives(room.players).filter(player => player.lives !== 0);
-    let currentIndex = playersLeft.findIndex(player => room.turn.current === player.id);
+function nextPlayer(roomData) {
+    let playersLeft = mapToPlayerLives(roomData.players).filter(player => player.lives !== 0);
+    let currentIndex = playersLeft.findIndex(player => roomData.turn.current === player.id);
     return playersLeft[(currentIndex + 1) % playersLeft.length].id;
 }
 
