@@ -1,5 +1,3 @@
-// Web app framework:
-import express from "express";
 import http from "http";
 import { Server } from "socket.io";
 import {
@@ -25,9 +23,7 @@ import {
   nextPlayer,
   switchRoles,
 } from "./Battle.js";
-//import { domainToASCII } from "url"
-const app = express();
-const server = http.createServer(app);
+const server = http.createServer();
 
 // Socket server that makes use of the above http app server:
 const io = new Server(server, {
@@ -41,12 +37,9 @@ const Rooms = new Map();
 //This map contains all socket id's as keys and has the correlating Rooms key as the value
 const PlayerRooms = new Map();
 
-// Basic app routing
-// app.get('/', (req, res) => {
-//  res.sendFile(__dirname + '/index.html');
-// });
+export { Rooms, PlayerRooms };
 
-// Handle socket connection
+// Handle each socket connection
 io.on("connection", (socket) => {
   console.log(`a user with the id: ${socket.id} has connected`);
   socket.on("disconnect", () => {
@@ -221,7 +214,6 @@ io.on("connection", (socket) => {
   //* ========================================Battle Page Handler ======================================================= *\\
 
   // Used for when a user picks a card to play
-  // It also draws a new card
   socket.on("cardPicked", (data) => {
     const roomID = PlayerRooms.get(socket.id);
     const roomPlayers = Rooms.get(roomID).players;
@@ -258,8 +250,6 @@ io.on("connection", (socket) => {
     switchRoles(roomID, roomData, socket);
   });
 });
-
-export { Rooms, PlayerRooms };
 // Start application server
 server.listen(3000, () => {
   console.log("listening on *:3000");

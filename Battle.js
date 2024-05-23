@@ -1,7 +1,7 @@
 import { PlayerRooms, Rooms } from "./index.js";
 export { drawHand, removeCardFromHand, checkWinner, mapToPlayerLives, nextPlayer, switchRoles, drawCard, computeOppPerformance };
 
-//make a starting hand
+// create the starting hand for a player
 function drawHand(deck, handSize) {
     const avgDeckRating = deck.cards.reduce((ratingSum, card) => ratingSum + card.rating, 0) / deck.cards.length;
     //randomize the rating so that it can vary between 1 and -1 from original value
@@ -31,7 +31,6 @@ function removeCardFromHand(playerID, usedIndex, roomID) {
     roomPlayers.get(playerID).hand = [...updatedHand];
 }
 
-// draw a new card
 function drawCard(oppPerformance, deck, usedCards, handCards, maxLives) {
     let newCardRating = new Array(2);
     //check if the new card on the hand should be harder or easier
