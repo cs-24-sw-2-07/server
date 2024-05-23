@@ -5,7 +5,7 @@ export { drawHand, removeCardFromHand, checkWinner, mapToPlayerLives, nextPlayer
 function drawHand(deck, handSize) {
     const avgDeckRating = deck.cards.reduce((ratingSum, card) => ratingSum + card.rating, 0) / deck.cards.length;
     //randomize the rating so that it can vary between 1 and -1 from original value
-    let randomRating = (avgDeckRating + (Math.random() * 2) - 1)
+    let randomRating = (avgDeckRating + (Math.random() * 2) - 1);
     //make sure rating does not become bigger than 5 or smaller than 1
     randomRating = Math.min(Math.max(randomRating, 1), 5);
 
@@ -28,7 +28,7 @@ function removeCardFromHand(playerID, usedIndex, roomID) {
     let updatedHand = [...roomPlayers.get(playerID).hand];
     roomPlayers.get(playerID).usedCards.push(updatedHand[usedIndex]);
     updatedHand.splice(usedIndex, 1);
-    roomPlayers.get(playerID).hand = [...updatedHand]
+    roomPlayers.get(playerID).hand = [...updatedHand];
 }
 
 // draw a new card
@@ -118,7 +118,7 @@ function checkWinner(roomID, roomData, socket, io) {
             } else {
                 io.to(player.id).emit("foundWinner", "lose");
             }
-        })
+        });
         return true;
     }
 

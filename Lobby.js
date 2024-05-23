@@ -86,7 +86,7 @@ function changeSettings(changeObj, Room) {
  */
 function deleteLobby(roomID, io) {
     //Deletes the key-value pairs from the PlayerRooms map
-    const players = Rooms.get(roomID).players
+    const players = Rooms.get(roomID).players;
     for (const [id,] of players.entries()) {
         PlayerRooms.delete(id);
     }
@@ -257,7 +257,7 @@ function checkValue(settingObj, roomData) {
     return {
         key: settingKey,
         value: value
-    }
+    };
 }
 
 function isUsernameValid(username) {
@@ -283,7 +283,7 @@ function checkPlayerDecks(roomID, settings, setting) {
 // Calculate the max deck size based on the players in the room
 function calculateMaxDeckSize(roomData) {
     let maxCards = Math.min(...[...roomData.players.values()].map(player => player.deck.cards.length)); //Uses ...[] because math.min does not take an array, so ...[] splits it into indivual values
-    return maxCards
+    return maxCards;
 }
 
 
