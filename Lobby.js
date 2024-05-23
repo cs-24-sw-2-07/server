@@ -24,10 +24,10 @@ function createLobby(socket, displayName) {
         "life": 3,
         "lobbySize": 2
     };
-    let RoomObj = roomStateObj(socket, displayName, settingsJson);
-    Rooms.set(roomID, RoomObj);
+    let roomObj = roomStateObj(socket, displayName, settingsJson);
+    Rooms.set(roomID, roomObj);
 
-    const playerArr = mapToArrayObj(RoomObj.players);
+    const playerArr = mapToArrayObj(roomObj.players);
     // Sends the default settings and id to the host
     return {
         ...settingsJson,
@@ -54,29 +54,29 @@ function createLobbyID() {
  * Function for creating the room object that contains the settings and a map for all players
  * @param {*} socket instance of the users socket
  * @param {*} username the name given by the player
- * @param {*} Settings object containing the settings
+ * @param {*} settings object containing the settings
  * @returns the room object
  */
-function roomStateObj(socket, username, Settings) {
+function roomStateObj(socket, username, settings) {
     // The lobby state is added to the rooms map as a value to the given room id
-    let LobbyStateObj = {
+    let lobbyStateObj = {
         "players": new Map(),
-        "settings": Settings,
+        "settings": settings,
         "turn": { current: undefined, next: undefined }
     };
-    LobbyStateObj.players.set(socket.id, createPlayer(username, true, socket.id));
-    return LobbyStateObj;
+    lobbyStateObj.players.set(socket.id, createPlayer(username, true, socket.id));
+    return lobbyStateObj;
 }
 
 /**
  * Function that changes a setting in the Room State
- * @param {*} ChangeObj object that contains the setting to be changed
+ * @param {*} changeObj object that contains the setting to be changed
  * @returns boolean whether the setting was accepted or not
  */
 //change Settings
-function changeSettings(ChangeObj, Room) {
-    const setting = ChangeObj.key;
-    Room.settings[setting] = Number(ChangeObj[setting]);
+function changeSettings(changeObj, Room) {
+    const setting = changeObj.key;
+    Room.settings[setting] = Number(changeObj[setting]);
 }
 
 /**
@@ -132,25 +132,23 @@ function playerReady(socketID, roomID) {
 /**
  * Allows players to join lobby with ther username and id
  * @param {*} playerArr Includes all players in the lobby
- * @param {*} PlayerObj Holds the players username
+ * @param {*} playerObj Holds the players username
  * @param {*} socket Holds the players socket id.
  */
-function joinLobby(PlayerObj, roomID, socket) {
+function joinLobby(playerObj, roomID, socket) {
     socket.join(roomID);
 
     const Players = Rooms.get(roomID).players;
-    const Player = createPlayer(PlayerObj.name, false, socket.id);
+    const player = createPlayer(playerObj.name, false, socket.id);
 
     PlayerRooms.set(socket.id, roomID);
-    Players.set(socket.id, Player);
+    Players.set(socket.id, player);
 
     return mapToArrayObj(Players);
 }
 
 /**
  * Allows for users to leave a lobby
- * @param {*} PlayerObj Object that contains the room's id
- * @param {*} PlayerObj Object that contains the room's id
  * @param {*} socket Gets the socket id for the user
  * @param {*} Room puts the players id into a map.
  * @param {*} playersleftArr creates a new array with the updated map.
@@ -160,11 +158,11 @@ function leaveLobby(socket, roomID) {
     PlayerRooms.delete(socket.id);
 
     //Delete the player from the Rooms map
-    const Room = Rooms.get(roomID);
-    Room.players.delete(socket.id);
+    const roomData = Rooms.get(roomID);
+    roomData.players.delete(socket.id);
     socket.leave(roomID);
 
-    const playersleftArr = mapToArrayObj(Room.players);
+    const playersleftArr = mapToArrayObj(roomData.players);
     return playersleftArr;
 }
 
@@ -176,11 +174,11 @@ function leaveLobby(socket, roomID) {
  * @param {*} roomID Id of the Room
  * @returns a boolean for whether the user is a host or not
  */
-function changeDeckState(deck, playerID, Room) {
-    if (deck.cards.length < Room.settings.deckSize) {
+function changeDeckState(deck, playerID, roomData) {
+    if (deck.cards.length < roomData.settings.deckSize) {
         return false;
     }
-    const player = Room.players.get(playerID);
+    const player = roomData.players.get(playerID);
     player.deck = deck;
     if (player.host && !player.ready) {
         player.ready = true;
@@ -223,7 +221,7 @@ function mapToArrayObj(map) {
     return array;
 }
 
-function checkValue(settingObj, Room) {
+function checkValue(settingObj, roomData) {
     const settingKey = settingObj.key;
     const setting = settingObj[settingKey];
 
@@ -236,14 +234,14 @@ function checkValue(settingObj, Room) {
             break;
         case "handSize":
             minimum = 3;
-            maximum = Room.settings.deckSize;
+            maximum = roomData.settings.deckSize;
             break;
         case "life":
             minimum = 1;
             maximum = 10;
             break;
         case "lobbySize":
-            minimum = Room.players.size >= 2 ? Room.players.size : 2;
+            minimum = roomData.players.size >= 2 ? roomData.players.size : 2;
             maximum = 30;
             break;
     }

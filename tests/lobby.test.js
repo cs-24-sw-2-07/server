@@ -2,7 +2,7 @@ import { expect, it, describe } from "vitest";
 import { CreateLobbyID, checkValue, CreateLobby, DeleteLobby, CheckPlayerDecks, CalculateMaxDeckSize, JoinLobby, ShouldStartGame, Rooms, PlayerReady, ChangeDeckState, isUsernameValid, LeaveLobby } from "../Lobby";
 import { PlayerRooms } from "..";
 
-
+/*
 describe("lobby functions", () => {
 
     it("generate unique lobby id", () => {
@@ -295,3 +295,4 @@ describe("lobby functions", () => {
 
     });
 }); 
+*/

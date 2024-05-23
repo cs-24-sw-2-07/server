@@ -1,6 +1,6 @@
 import { expect, it, describe } from "vitest";
-import { CreateLobby, JoinLobby, Rooms } from "../Lobby";
-import { removeCardFromHand, MapToPlayerLives, checkWinner, nextPlayer, switchRoles, drawHand, computeOppPerformance, drawCard } from "../Battle";
+import { createLobby, joinLobby, Rooms } from "../Lobby";
+import { removeCardFromHand, mapToPlayerLives, checkWinner, nextPlayer, switchRoles, drawHand, computeOppPerformance, drawCard } from "../Battle";
 
 
 describe("Battle functions", () => {
@@ -13,7 +13,7 @@ describe("Battle functions", () => {
             join: () => { }
         };
         //create lobby
-        const lobby = CreateLobby(socket, "testuser");
+        const lobby = createLobby(socket, "testuser");
         const roomID = `/${lobby.id}`
         const roomData = Rooms.get(roomID)
         roomData.players.get(socketid).hand = [1, 2, 3, 4, 5];
@@ -33,15 +33,15 @@ describe("Battle functions", () => {
             join: () => { }
         };
         //create lobby
-        const lobby = CreateLobby(socket1, "testuser");
+        const lobby = createLobby(socket1, "testuser");
         const roomID = `/${lobby.id}`;
-        JoinLobby({ name: "testuser2", id: roomID }, roomID, socket2)
+        joinLobby({ name: "testuser2", id: roomID }, roomID, socket2)
         //give players lives
         const playerData = Rooms.get(roomID).players
         playerData.get(socket1.id).lives = 4;
         playerData.get(socket2.id).lives = 6;
 
-        const playerArr = MapToPlayerLives(playerData);
+        const playerArr = mapToPlayerLives(playerData);
         // Testing data on the array
         expect(playerArr[0].lives).toBe(4)
         expect(playerArr[1].lives).toBe(6)
@@ -91,9 +91,9 @@ describe("Battle functions", () => {
         };
 
         //create lobby
-        const lobby = CreateLobby(socket1, "testuser");
+        const lobby = createLobby(socket1, "testuser");
         const roomID = `/${lobby.id}`;
-        JoinLobby({ name: "testuser2", id: roomID }, roomID, socket2)
+        joinLobby({ name: "testuser2", id: roomID }, roomID, socket2)
 
         let roomData = Rooms.get(roomID);
         const player1Data = roomData.players.get(socket1.id)
@@ -167,10 +167,10 @@ describe("Battle functions", () => {
         };
 
         //create lobby
-        const lobby = CreateLobby(socket1, "testuser");
+        const lobby = createLobby(socket1, "testuser");
         const roomID = `/${lobby.id}`;
-        JoinLobby({ name: "testuser2", id: roomID }, roomID, socket2)
-        JoinLobby({ name: "testuser3", id: roomID }, roomID, socket3)
+        joinLobby({ name: "testuser2", id: roomID }, roomID, socket2)
+        joinLobby({ name: "testuser3", id: roomID }, roomID, socket3)
         let roomData = Rooms.get(roomID);
         //give players lives
         roomData.players.get(socket1.id).lives = 1;
@@ -225,10 +225,10 @@ describe("Battle functions", () => {
         };
 
         //create lobby
-        const lobby = CreateLobby(socket1, "testuser");
+        const lobby = createLobby(socket1, "testuser");
         const roomID = `/${lobby.id}`;
-        JoinLobby({ name: "testuser2", id: roomID }, roomID, socket2)
-        JoinLobby({ name: "testuser3", id: roomID }, roomID, socket3)
+        joinLobby({ name: "testuser2", id: roomID }, roomID, socket2)
+        joinLobby({ name: "testuser3", id: roomID }, roomID, socket3)
         let roomData = Rooms.get(roomID);
 
         const player1Data = roomData.players.get(socket1.id)
@@ -268,7 +268,7 @@ describe("Battle functions", () => {
         };
 
         //create lobby
-        const lobby = CreateLobby(socket1, "testuser");
+        const lobby = createLobby(socket1, "testuser");
         const roomID = `/${lobby.id}`;
         const roomData = Rooms.get(roomID);
         const player1 = roomData.players.get(socket1.id);
@@ -299,7 +299,7 @@ describe("Battle functions", () => {
             id: "ojIckSD2jqNzOqIrAGzL", // id is 20 random chars.
             join: () => { },
         };
-        const lobby = CreateLobby(socket1, "testuser");
+        const lobby = createLobby(socket1, "testuser");
         const roomID = `/${lobby.id}`;
         const roomData = Rooms.get(roomID);
         const player1 = roomData.players.get(socket1.id);
@@ -354,10 +354,10 @@ describe("Battle functions", () => {
             join: () => { },
         };
 
-        const lobby = CreateLobby(socket1, "testuser");
+        const lobby = createLobby(socket1, "testuser");
         const roomID = `/${lobby.id}`;
-        JoinLobby({ name: "testuser2", id: roomID }, roomID, socket2)
-        JoinLobby({ name: "testuser3", id: roomID }, roomID, socket3)
+        joinLobby({ name: "testuser2", id: roomID }, roomID, socket2)
+        joinLobby({ name: "testuser3", id: roomID }, roomID, socket3)
         const roomData = Rooms.get(roomID);
         const player1Data = roomData.players.get(socket1.id)
         const player2Data = roomData.players.get(socket2.id)

@@ -1,5 +1,5 @@
 import { PlayerRooms, Rooms } from "./index.js";
-export { drawHand, removeCardFromHand, checkWinner, MapToPlayerLives, nextPlayer, switchRoles, drawCard, computeOppPerformance };
+export { drawHand, removeCardFromHand, checkWinner, mapToPlayerLives, nextPlayer, switchRoles, drawCard, computeOppPerformance };
 
 //make a starting hand
 function drawHand(deck, handSize) {
@@ -62,8 +62,7 @@ function drawCard(oppPerformance, deck, usedCards, handCards, maxLives) {
     //find all the cards that have not been played
     const unusedCards = cards.filter(card => !(handCards.includes(card.index) || usedCards.includes(card.index)));
     //find cards that match the rating we want
-    const candidates = unusedCards.filter(card => card.rating === newCardRating[0]
-        || card.rating === newCardRating[1]);
+    const candidates = unusedCards.filter(card => card.rating === newCardRating[0] || card.rating === newCardRating[1]);
 
     if (candidates.length === 0) {
         return unusedCards[Math.floor(Math.random() * unusedCards.length)].index;
@@ -71,7 +70,7 @@ function drawCard(oppPerformance, deck, usedCards, handCards, maxLives) {
     return candidates[Math.floor(Math.random() * candidates.length)].index;
 }
 
-function MapToPlayerLives(map) {
+function mapToPlayerLives(map) {
     let array = [];
     for (const [key, value] of map.entries()) {
         array.push({
@@ -127,7 +126,7 @@ function checkWinner(roomID, roomData, socket, io) {
 }
 
 function nextPlayer(room) {
-    let playersLeft = MapToPlayerLives(room.players).filter(player => player.lives !== 0);
+    let playersLeft = mapToPlayerLives(room.players).filter(player => player.lives !== 0);
     let currentIndex = playersLeft.findIndex(player => room.turn.current === player.id);
     return playersLeft[(currentIndex + 1) % playersLeft.length].id;
 }
@@ -153,7 +152,7 @@ function computeOppPerformance(roomData, playerID) {
     const opponent = players.get(opponentID);
     const player = players.get(playerID);
 
-    const playerArr = MapToPlayerLives(players);
+    const playerArr = mapToPlayerLives(players);
     const avgPerformance = playerArr.reduce((sum, player) => sum + player.lives, 0) / playerArr.length;
 
     // The opponents performance is based on difference from you and the difference from the average 

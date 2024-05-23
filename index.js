@@ -110,7 +110,7 @@ io.on("connection", (socket) => {
       }
     }
   });
-  
+
   socket.on("joinLobby", (joined) => {
     const roomID = `/${joined.id}`;
     const roomData = Rooms.get(roomID);
@@ -171,7 +171,7 @@ io.on("connection", (socket) => {
   socket.on("playerReady", () => {
     const roomID = PlayerRooms.get(socket.id);
     const playerReadyStatus = playerReady(socket.id, roomID);
-    console.log("player", socket.id, "was ready"); 
+    console.log("player", socket.id, "changed ready status");
     io.to(roomID).emit("playerHandler", playerReadyStatus);
   });
 
@@ -223,17 +223,12 @@ io.on("connection", (socket) => {
   // Used for when a user picks a card to play
   // It also draws a new card
   socket.on("cardPicked", (data) => {
-    // TODO: Flere spillere validering
     const roomID = PlayerRooms.get(socket.id);
     const roomPlayers = Rooms.get(roomID).players;
     const player = roomPlayers.get(socket.id);
-    //TODO make a validation that the played card is vaulied compaired to the hand
-    socket
-      .to(roomID)
-      .emit("cardPicked", player.deck.cards[player.hand[data.cardID]]);
+
+    socket.to(roomID).emit("cardPicked", player.deck.cards[player.hand[data.cardID]]);
     removeCardFromHand(socket.id, data.cardID, roomID);
-
-
   });
 
   // Used when a user is done answering a question
