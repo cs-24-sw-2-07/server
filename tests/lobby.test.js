@@ -1,5 +1,5 @@
 import { expect, it, describe } from "vitest";
-import { createLobbyID, checkValue, createLobby, deleteLobby, checkPlayerDecks, calculateMaxDeckSize, joinLobby, shouldStartGame, Rooms, playerReady, changeDeckState, isUsernameValid, leaveLobby } from "../Lobby";
+import { createLobbyID, checkValue, createLobby, deleteLobby, checkPlayerDecks, calculateMaxDeckSize, joinLobby, shouldStartGame, Rooms, playerReady, changeDeckState, isUsernameValid, leaveLobby, changeSettings } from "../Lobby";
 import { PlayerRooms } from "..";
 
 
@@ -70,6 +70,35 @@ describe("lobby functions", () => {
         expect(checkValue({ key: "lobbySize", lobbySize: 3 }, Room).value).toBe("");
         expect(checkValue({ key: "lobbySize", lobbySize: 30 }, Room).value).toBe("");
         expect(checkValue({ key: "lobbySize", lobbySize: 31 }, Room).value).not.toBe("");
+    });
+
+    it("change settings", () => {
+        const socketid = "ojIckSD2jqNzOqIrAGzL";
+
+        // create mock socket object
+        const socket = {
+            id: socketid, // id is 20 random chars.
+            join: () => { }
+        };
+        const lobby = createLobby(socket, "testuser");
+
+        const roomData = Rooms.get(`/${lobby.id}`);
+        const settings = roomData.settings;
+
+        expect(settings.deckSize).toBe(15);
+        expect(settings.handSize).toBe(5);
+        expect(settings.life).toBe(3);
+        expect(settings.lobbySize).toBe(2);
+
+        changeSettings({key: "deckSize", deckSize: 6}, roomData);
+        changeSettings({key: "handSize", handSize: 4}, roomData);
+        changeSettings({key: "life", life: 8}, roomData);
+        changeSettings({key: "lobbySize", lobbySize: 15}, roomData);
+
+        expect(settings.deckSize).toBe(6);
+        expect(settings.handSize).toBe(4);
+        expect(settings.life).toBe(8);
+        expect(settings.lobbySize).toBe(15);
     });
 
     it("delete lobby", () => {

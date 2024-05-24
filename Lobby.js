@@ -51,9 +51,9 @@ function roomStateObj(socket, username, settings) {
     return lobbyStateObj;
 }
 
-function changeSettings(changeObj, Room) {
+function changeSettings(changeObj, roomData) {
     const setting = changeObj.key;
-    Room.settings[setting] = Number(changeObj[setting]);
+    roomData.settings[setting] = Number(changeObj[setting]);
 }
 
 function deleteLobby(roomID, io) {
